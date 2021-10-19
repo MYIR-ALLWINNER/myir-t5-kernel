@@ -1,0 +1,12 @@
+
+menu "rongpin support"
+
+config POWER_EN
+	tristate "rongpin power_en support"
+
+config RP_GPIO
+        tristate "rp gpio driver"
+        default y
+        help
+          Say yes here to build support for "rp_gpio.c".
+endmenu
