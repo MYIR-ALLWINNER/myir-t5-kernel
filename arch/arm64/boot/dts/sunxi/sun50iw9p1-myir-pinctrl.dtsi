@@ -229,16 +229,16 @@
 			};
 
 			twi2_pins_a: twi2@0 {
-				allwinner,pins = "PH2", "PH3";
+				allwinner,pins = "PE20", "PE21";
 				allwinner,pname = "twi2_scl", "twi2_sda";
 				allwinner,function = "twi2";
 				allwinner,muxsel = <5>;
 				allwinner,drive = <1>;
-				allwinner,pull = <0>;
+				allwinner,pull = <1>;
 			};
 
 			twi2_pins_b: twi2@1 {
-				allwinner,pins = "PH2", "PH3";
+				allwinner,pins = "PE20", "PE21";
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
 				allwinner,drive = <1>;
@@ -250,15 +250,15 @@
 				allwinner,pname = "twi3_scl", "twi3_sda";
 				allwinner,function = "twi3";
 				allwinner,muxsel = <2>;
-				allwinner,drive = <1>;
-				allwinner,pull = <0>;
+				allwinner,drive = <0>;
+				allwinner,pull = <1>;
 			};
 
 			twi3_pins_b: twi3@1 {
 				allwinner,pins = "PA10", "PA11";
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
-				allwinner,drive = <1>;
+				allwinner,drive = <0>;
 				allwinner,pull = <0>;
 			};
 
@@ -368,7 +368,7 @@
 
 			sdc0_pins_a: sdc0@0 {
 				allwinner,pins = "PF0", "PF1", "PF2",
-						 "PF3", "PF4", "PF5";
+						 "PF3", "PF4", "PF5", "PF6";/*sd-DET*/
 				allwinner,function = "sdc0";
 				allwinner,muxsel = <2>;
 				allwinner,drive = <3>;
@@ -377,7 +377,7 @@
 
 			sdc0_pins_b: sdc0@1 {
 				allwinner,pins = "PF0", "PF1", "PF2",
-						 "PF3", "PF4", "PF5";
+						 "PF3", "PF4", "PF5", "PF6";
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
 				allwinner,drive = <1>;
@@ -438,7 +438,25 @@
 				allwinner,drive = <2>;
 				allwinner,pull = <2>;
 			};
+			
+			  pwm0_pin_a: pwm0@0 {
+                                allwinner,pins = "PD28";
+                                allwinner,function = "pwm0";
+                                allwinner,muxsel = <0x02>;
+                                allwinner,drive = <0xffffffff>;
+                                allwinner,pull = <1>;
+                                allwinner,data = <0xffffffff>;
+                        };
 
+                        pwm0_pin_b: pwm0@1 {
+                                allwinner,pins = "PD28";
+                                allwinner,function = "io_disabled";
+                                allwinner,muxsel = <0x07>;
+                                allwinner,drive = <0xffffffff>;
+                                allwinner,pull = <0>;
+                                allwinner,data = <0xffffffff>;
+                        };
+			
 			spdif_pins_a: spdif@0 {
 				allwinner,pins = "PH2", "PH3", "PH4";
 				allwinner,function = "spdif";
@@ -668,6 +686,12 @@
 				allwinner,drive = <0>;
 				allwinner,pull = <0>;
 			};
+			/*
+			scr0_pins_a: scr0@0 {
+                                allwinner,pins = "PD17", "PD18", "PD14", "PD15", "PD16";
+                                allwinner,pname = "scr0_rst", "scr0_det", "scr0_vccen", "scr0_sck", "scr0_sda";
+                        };
+			*/
 
 			scr1_pins_a: scr1@0 {
 				allwinner,pins = "PH5", "PH6", "PH2",
