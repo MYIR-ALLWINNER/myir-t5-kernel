@@ -185,10 +185,12 @@ static int rx8025_get_time(struct device *dev, struct rtc_time *dt)
 	u8 date[7];
 	int err;
 
+	//del by licy 2021/10/22
+	/*
 	err = rx8025_check_validity(dev);
 	if (err)
 		return err;
-
+	*/
 	err = rx8025_read_regs(rx8025->client, RX8025_REG_SEC, 7, date);
 	if (err)
 		return err;

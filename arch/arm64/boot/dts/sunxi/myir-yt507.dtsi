@@ -5,6 +5,7 @@
 
 /dts-v1/;
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/gpio/gpio.h>
 #include "sun50iw9p1-myir.dtsi"               
 //#include "rp-lcd-lvds-10.1-1024-600.dtsi"
 //#include "rp-lcd-rgb-7-1024-600.dtsi"
@@ -50,13 +51,29 @@
               status = "okay";
               compatible = "rp_gpio";
 	      /*GPIO LED*/
-              led {
-                  gpio_num = <&pio PE 19 1 0xffffffff 0xffffffff 1>;
-                  gpio_function = <3>;            //0:output 1:input 2:IRQ 3:flash
+              //led {
+              //    gpio_num = <&pio PE 19 1 0xffffffff 0xffffffff 1>;
+              //    gpio_function = <3>;            //0:output 1:input 2:IRQ 3:flash
                   //gpio_event = <KEY_F14>;
                   //send_mode = <0>;  
-              };
+              //};
 	};
+
+	leds {
+		compatible = "gpio-leds";
+    		pinctrl-names = "default";
+    		status = "okay";
+		
+		led: led-blue {
+			label = "blue";
+			gpios = <&pio PE 19 1 1 1 0>;
+			linux,defaults-trigger = "heartbeat";
+			//default-state = "on";
+			defaults-state = "on";
+		};
+
+	};
+	
 
 	soc@03000000 {
 		pio: pinctrl@0300b000 {
