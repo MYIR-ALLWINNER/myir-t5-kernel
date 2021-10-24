@@ -50,23 +50,24 @@ static irqreturn_t sunxi_gpadc_interrupt(int irqno, void *dev_id)
 
 	reg_val = sunxi_gpadc_read_ints(sunxi_gpadc_handler->reg_base);
 	reg_val &= sunxi_gpadc_int_cfg(sunxi_gpadc_handler->reg_base);
-
-	if (reg_val & GP_CH0_LOW_IRQ_PEND)
+	
+	//fixed PEND -> EN
+	if (reg_val & GP_CH0_LOW_IRQ_EN)
 		printk("channel 0 low pend\n");
 
-	if (reg_val & GP_CH1_LOW_IRQ_PEND)
+	if (reg_val & GP_CH1_LOW_IRQ_EN)
 		printk("channel 1 low pend\n");
 
-	if (reg_val & GP_CH0_DATA_IRQ_PEND)
+	if (reg_val & GP_CH0_DATA_IRQ_EN)
 		printk("val_ch0 = %d mv\n", sunxi_gpadc_read_data(sunxi_gpadc_handler->reg_base, GP_CH_0)*561);
 
-	if (reg_val & GP_CH1_DATA_IRQ_PEND)
+	if (reg_val & GP_CH1_DATA_IRQ_EN)
 		printk("val_ch1 = %d mv\n", sunxi_gpadc_read_data(sunxi_gpadc_handler->reg_base, GP_CH_1)*561);
 
-	if (reg_val & GP_CH0_HIG_IRQ_PEND)
+	if (reg_val & GP_CH0_HIG_IRQ_EN)
 		printk("channel 0 hight pend\n");
 
-	if (reg_val & GP_CH1_HIG_IRQ_PEND)
+	if (reg_val & GP_CH1_HIG_IRQ_EN)
 		printk("channel 1 hight pend\n");
 
 	sunxi_gpadc_clr_ints(sunxi_gpadc_handler->reg_base, reg_val);

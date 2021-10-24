@@ -11,8 +11,9 @@
 //#include "rp-lcd-rgb-7-1024-600.dtsi"
 //#include "rp-lcd-lvds-21-1920-1080.dtsi"
 //#include "rp-lcd-lvds-10.1-1024-600-hdmi.dtsi"
-#include "rp-lcd-lvds-10.1-1280-720.dtsi"
+//#include "rp-lcd-lvds-10.1-1280-720.dtsi"
 //##include "rp-hdmi.dtsi"
+#include "myir-lvds-7-1024-600.dtsi"
 //#include "rp-tv.dtsi"
 
 /{
@@ -184,7 +185,7 @@
 		gmac0: eth@05020000{
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
-			use_ephy25m = <1>;
+			use_ephy25m = <0>;
 			tx-delay = <2>;
 			rx-delay = <23>;
 			gmac-power0-supply = <&reg_cldo3>;
@@ -329,11 +330,11 @@
 			wlan_busnum   = <0x1>;
 			wlan_power    = "axp858-dcdc1";
 			wlan_io_regulator = "axp858-cldo2";
-			wlan_regon    = <&pio PE 5 1 0xffffffff 0xffffffff 1>;
-			wlan_hostwake = <&pio PE 4 6 0xffffffff 0xffffffff 1>;
+			wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
+			wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
 			chip_en;
 			power_en;
-			status        = "disabled";
+			status        = "okay";
 		};
 
 		bt:bt {
@@ -341,8 +342,8 @@
 			clocks        = <&clk_losc_out>;
 			bt_power      = "axp858-dcdc1";
 			bt_io_regulator = "axp858-cldo2";
-			bt_rst_n      = <&pio PE 8 1 0xffffffff 0xffffffff 0>;
-			status        = "disabled";
+			bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+			status        = "okay";
 		};
 
 		btlpm:btlpm {
