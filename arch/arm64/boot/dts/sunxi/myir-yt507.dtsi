@@ -6,14 +6,15 @@
 /dts-v1/;
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
-#include "sun50iw9p1-myir.dtsi"               
+#include "sun50iw9p1-myir.dtsi"     
+#include "myir-lcd-lvds-7-1024-600.dtsi"          
 //#include "rp-lcd-lvds-10.1-1024-600.dtsi"
 //#include "rp-lcd-rgb-7-1024-600.dtsi"
 //#include "rp-lcd-lvds-21-1920-1080.dtsi"
 //#include "rp-lcd-lvds-10.1-1024-600-hdmi.dtsi"
 //#include "rp-lcd-lvds-10.1-1280-720.dtsi"
 //##include "rp-hdmi.dtsi"
-#include "myir-lvds-7-1024-600.dtsi"
+//#include "myir-lvds-7-1024-600.dtsi"
 //#include "rp-tv.dtsi"
 
 /{
@@ -60,6 +61,14 @@
               //};
 	};
 
+	backlight {
+        	status = "okay";
+        	compatible = "pwm-backlight";
+        	pwms = <&pwm0 0 50000 0>;
+        	brightness-levels = <0 2 4 8 16 32 64 128 255>;
+		defaults-brightness-level = <128>;
+	};
+
 	leds {
 		compatible = "gpio-leds";
     		pinctrl-names = "default";
@@ -69,7 +78,6 @@
 			label = "blue";
 			gpios = <&pio PE 19 1 1 1 0>;
 			linux,defaults-trigger = "heartbeat";
-			//default-state = "on";
 			defaults-state = "on";
 		};
 
@@ -185,7 +193,7 @@
 		gmac0: eth@05020000{
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
-			use_ephy25m = <0>;
+			use_ephy25m = <1>;
 			tx-delay = <2>;
 			rx-delay = <23>;
 			gmac-power0-supply = <&reg_cldo3>;
@@ -319,7 +327,7 @@
 		uart5: uart@05001400 {
 			uart-supply = <&reg_cldo3>;
 			uart5_type = <2>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		wlan:wlan {
@@ -342,16 +350,16 @@
 			clocks        = <&clk_losc_out>;
 			bt_power      = "axp858-dcdc1";
 			bt_io_regulator = "axp858-cldo2";
-			bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+			//bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
 			status        = "okay";
 		};
 
 		btlpm:btlpm {
 			compatible  = "allwinner,sunxi-btlpm";
 			uart_index  = <0x1>;
-			bt_wake     = <&pio PE 7 1 0xffffffff 0xffffffff 1>;
-			bt_hostwake = <&pio PE 6 6 0xffffffff 0xffffffff 0>;
-			status      = "disabled";
+		//	bt_wake     = <&pio PE 7 1 0xffffffff 0xffffffff 1>;
+			bt_hostwake = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+			status      = "okay";
 		};
 
 		car_reverse:car_reverse {

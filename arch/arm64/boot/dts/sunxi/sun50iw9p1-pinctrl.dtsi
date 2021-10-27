@@ -179,7 +179,7 @@
 
 			uart5_pins_a: uart5@0 {/*myir ok*/
 				allwinner,pins = "PH2", "PH3";
-				allwinner,pname = "uart3_tx", "uart3_rx";
+				allwinner,pname = "uart5_tx", "uart5_rx";
 				allwinner,function = "uart5";
 				allwinner,muxsel = <2>;
 				allwinner,drive = <1>;

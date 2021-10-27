@@ -741,7 +741,7 @@
 			pinctrl-1 = <&uart5_pins_b>;
 			uart5_port = <5>;
 			uart5_type = <2>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		twi5: twi@0x07081400{
