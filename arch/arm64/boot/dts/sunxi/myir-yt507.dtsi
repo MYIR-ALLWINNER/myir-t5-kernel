@@ -342,7 +342,7 @@
 			wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
 			chip_en;
 			power_en;
-			status        = "okay";
+			status        = "disabled";
 		};
 
 		bt:bt {
@@ -351,7 +351,7 @@
 			bt_power      = "axp858-dcdc1";
 			bt_io_regulator = "axp858-cldo2";
 			//bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
-			status        = "okay";
+			status        = "disabled";
 		};
 
 		btlpm:btlpm {
@@ -359,7 +359,7 @@
 			uart_index  = <0x1>;
 		//	bt_wake     = <&pio PE 7 1 0xffffffff 0xffffffff 1>;
 			bt_hostwake = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
-			status      = "okay";
+			status      = "disabled";
 		};
 
 		car_reverse:car_reverse {

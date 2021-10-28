@@ -368,7 +368,7 @@
 
 			sdc0_pins_a: sdc0@0 {
 				allwinner,pins = "PF0", "PF1", "PF2",
-						 "PF3", "PF4", "PF5", "PF6";/*sd-DET*/
+						 "PF3", "PF4", "PF5"; /* PF6; sd-DET*/
 				allwinner,function = "sdc0";
 				allwinner,muxsel = <2>;
 				allwinner,drive = <3>;
@@ -377,7 +377,7 @@
 
 			sdc0_pins_b: sdc0@1 {
 				allwinner,pins = "PF0", "PF1", "PF2",
-						 "PF3", "PF4", "PF5", "PF6";
+						 "PF3", "PF4", "PF5"; /* PF6; */
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
 				allwinner,drive = <1>;
