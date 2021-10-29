@@ -60,7 +60,7 @@
                   //send_mode = <0>;  
               //};
 	};
-
+/*
 	backlight {
         	status = "okay";
         	compatible = "pwm-backlight";
@@ -68,7 +68,7 @@
         	brightness-levels = <0 2 4 8 16 32 64 128 255>;
 		defaults-brightness-level = <128>;
 	};
-
+*/
 	leds {
 		compatible = "gpio-leds";
     		pinctrl-names = "default";
@@ -286,6 +286,7 @@
 		};
                 
 		/*GPADC*/
+		/*
 		gpadc:gpadc{
                         channel_num = <4>;
                         channel_select = <0x01>;
@@ -297,6 +298,7 @@
                         channel0_compare_higdata = <1000000>;
                         status = "okay";
                 };
+		*/
 
 		/*BT*/
 		uart1: uart@05000400 {
@@ -1146,4 +1148,11 @@ vinc(x)_sensor_list: use sensor list
 
 &csi1 {
 	status = "disabled";
+};
+
+&gpadc {
+        channel_num = <4>;
+        channel_select = <0xf>;
+        channel_data_select = <0xf>;
+        status = "okay";
 };

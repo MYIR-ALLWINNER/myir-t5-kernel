@@ -171,7 +171,7 @@ pull up or pull down(default 0), driver level(default 1), data>
 			lcd_used            = <1>;
 
 			lcd_driver_name     = "default_lcd";//bp101wx1
-			lcd_backlight       = <100>;
+			lcd_backlight       = <200>;
 			lcd_if              = <3>; //lcd
 
 			lcd_x               = <1024>;
@@ -214,7 +214,7 @@ pull up or pull down(default 0), driver level(default 1), data>
 			lcd_pin_power = "bldo1";    
 			                                 
 			lcd_power = "dc1sw";
-			lcd_bl_en        = <&pio PD 28 1 0 3 1>;       
+			//lcd_bl_en        = <&pio PD 28 1 0 3 1>;       
 			  
 			//lcd_gpio_0       = <&pio PH 4 1 0 3 1>;
 			

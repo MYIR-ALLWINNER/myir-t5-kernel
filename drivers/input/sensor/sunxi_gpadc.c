@@ -580,7 +580,7 @@ static int sunxi_gpadc_input_event_set(struct input_dev *input_dev, enum gp_chan
 		pr_err("%s:input_dev: not enough memory for input device\n", __func__);
 		return -ENOMEM;
 	}
-
+#if 0
 	switch (id) {
 	case GP_CH_0:
 #ifdef CONFIG_ARCH_SUN8IW18
@@ -614,6 +614,10 @@ static int sunxi_gpadc_input_event_set(struct input_dev *input_dev, enum gp_chan
 		pr_err("%s, invalid channel id!", __func__);
 		return -ENOMEM;
 	}
+#endif
+	input_dev->evbit[0] = BIT_MASK(EV_MSC);
+	set_bit(EV_MSC, input_dev->evbit);
+	set_bit(MSC_SCAN, input_dev->mscbit);
 
 	return 0;
 }
@@ -778,7 +782,7 @@ static int sunxi_gpadc_setup(struct platform_device *pdev,
 
 	if (of_property_read_u32(np, "channel_cld_select", &gpadc_config->channel_cld_select)) {
 		pr_err("%s: get channel compare low data select failed\n", __func__);
-		gpadc_config->channel_select = 0;
+		gpadc_config->channel_cld_select = 0;
 	}
 
 	if (of_property_read_u32(np, "channel_chd_select", &gpadc_config->channel_chd_select)) {
@@ -814,7 +818,7 @@ static int sunxi_gpadc_hw_init(struct sunxi_gpadc *sunxi_gpadc)
 			sunxi_gpadc->gpadc_sample_rate);
 	for (i = 0; i < sunxi_gpadc->channel_num; i++) {
 		if (gpadc_config->channel_select & sunxi_gpadc_channel_id(i)) {
-			sunxi_gpadc_ch_select(sunxi_gpadc->reg_base, i);
+			//sunxi_gpadc_ch_select(sunxi_gpadc->reg_base, i);
 			if (gpadc_config->channel_data_select & sunxi_gpadc_channel_id(i))
 				sunxi_enable_irq_ch_select(sunxi_gpadc->reg_base, i);
 			if (gpadc_config->channel_compare_select & sunxi_gpadc_channel_id(i)) {
@@ -943,7 +947,7 @@ static irqreturn_t sunxi_gpadc_interrupt(int irqno, void *dev_id)
 	sunxi_ch_lowirq_clear_flags(sunxi_gpadc->reg_base, reg_low);
 	reg_hig = sunxi_ch_higirq_status(sunxi_gpadc->reg_base);
 	sunxi_ch_higirq_clear_flags(sunxi_gpadc->reg_base, reg_hig);
-
+/*
 	if (reg_val & GP_CH0_DATA) {
 		data = sunxi_gpadc_read_data(sunxi_gpadc->reg_base, GP_CH_0);
 	}
@@ -968,7 +972,7 @@ static irqreturn_t sunxi_gpadc_interrupt(int irqno, void *dev_id)
 		sunxi_gpadc->key_cnt = 0;
 		sunxi_disable_higirq_ch_select(sunxi_gpadc->reg_base, GP_CH_0);
 	}
-
+*/
 #ifdef CONFIG_ARCH_SUN8IW18
 	if (reg_low & GP_CH3_LOW & reg_enable_low) {
 		data = sunxi_gpadc_read_data(sunxi_gpadc->reg_base, GP_CH_3);
@@ -1003,7 +1007,7 @@ static irqreturn_t sunxi_gpadc_interrupt(int irqno, void *dev_id)
 	}
 
 #ifndef CONFIG_ARCH_SUN8IW18
-	for (i = 1; i < sunxi_gpadc->channel_num; i++) {
+	for (i = 0; i < sunxi_gpadc->channel_num; i++) {
 		if (reg_val & reg_enable_val & (1 << i)) {
 			data = sunxi_gpadc_read_data(sunxi_gpadc->reg_base, i);
 			input_event(sunxi_gpadc->input_gpadc[i],
@@ -1433,7 +1437,7 @@ int sunxi_gpadc_probe(struct platform_device *pdev)
 		}
 	}
 
-	sunxi_key_init(sunxi_gpadc, pdev);
+	//sunxi_key_init(sunxi_gpadc, pdev);
 	sunxi_gpadc_setup(pdev, sunxi_gpadc);
 	sunxi_gpadc_hw_init(sunxi_gpadc);
 	sunxi_gpadc_input_register_setup(sunxi_gpadc);
