@@ -83,6 +83,29 @@
 
 	};
 	
+	i2c@0{
+		compatible = "i2c-gpio";
+		status = "okay";
+		gpios = <&pio PD 26 1 1 1 0 /*SDA*/
+			 &pio PD 25 1 1 1 0 /*SCL*/
+			>;
+
+		//i2c-gpio,sda-open-drain;
+		//i2c-gpio,scl-open-drain;
+		//i2c-gpio,delay-us = <2>;	/* ~100 kHz */
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		edt-ft5x06@38 {
+			compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
+			reg = <0x38>;
+			interrupt-parent = <&pio>;
+                        interrupts = <PD 24 IRQ_TYPE_LEVEL_LOW>;
+                        gpio-controller;
+			reset-gpios = <&pio PD 27 1 0xffffffff 0xffffffff 1>;
+			status = "okay";
+		};
+	};	
 
 	soc@03000000 {
 		pio: pinctrl@0300b000 {

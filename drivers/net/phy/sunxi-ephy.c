@@ -183,7 +183,8 @@ static int ephy_config_init(struct phy_device *phydev)
 	value |= 1 << 12;
 	phy_write(phydev, 0x13, value);
 #endif
-
+	value = phy_read(phydev, 0xc);
+	printk("phy_read===>%#08x\n", value);
 	return 0;
 }
 

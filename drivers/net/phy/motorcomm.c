@@ -51,7 +51,7 @@
  * by degault, it is set to 0
  * NOTE: this macro will need macro SYS_WAKEUP_BASED_ON_ETH_PKT to set to 1
  */
-#define GMAC_CLOCK_INPUT_NEEDED 0
+#define GMAC_CLOCK_INPUT_NEEDED 1
 
 
 #define YT8521_PHY_MODE_FIBER	1 //fiber mode only
@@ -366,8 +366,14 @@ int yt8511_config_dis_txdelay(struct mii_bus *bus, int phy_id)
 	Tx Delay time = 150ps * N - 250ps
     */
     val &= ~(0xf << 4);
+    //val |= (0x5 << 4);
+    //val |= BIT(0);
+    //val |= BIT(3);
     ret = ytphy_mii_wr_ext(bus, phy_id, 0xc, val);
     printk("yt8511_config_dis_txdelay..phy txdelay, val=%#08x\n",val);
+    val = ytphy_mii_rd_ext(bus, phy_id, 0xc);
+    printk("yt8511_config_dis_txdelay..phy read txdelay, val=%#08x\n",val);
+
 
     return ret;
 }
@@ -423,6 +429,7 @@ int yt8511_config_out_125m(struct mii_bus *bus, int phy_id)
 static int yt8511_config_init(struct phy_device *phydev)
 {
 	int ret;
+	printk ("yzhang..8511 init, phy config init\n");
 
 #if ( LINUX_VERSION_CODE < KERNEL_VERSION(4,0,0) )
 	ret = ytphy_config_init(phydev);
