@@ -7,7 +7,9 @@
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
 #include "sun50iw9p1-myir.dtsi"     
-#include "myir-lcd-lvds-7-1024-600.dtsi"          
+//#include "myir-lcd-1lvds-7-1024-600.dtsi"
+#include "myir-lcd-2lvds-7-1024-600-10-1280-800.dtsi"
+//#include "myir-lcd-lvds-10.1-1280-800.dtsi" 
 //#include "rp-lcd-lvds-10.1-1024-600.dtsi"
 //#include "rp-lcd-rgb-7-1024-600.dtsi"
 //#include "rp-lcd-lvds-21-1920-1080.dtsi"
@@ -218,7 +220,7 @@
 			phy-rst = <&pio PI 6 1 1 1 0>;
 			use_ephy25m = <1>;
 			tx-delay = <2>;
-			rx-delay = <23>;
+			rx-delay = <24>;
 			gmac-power0-supply = <&reg_cldo3>;
 			gmac-power1-supply;
 			gmac-power2-supply;
@@ -269,7 +271,7 @@
 			pinctrl-0 = <&twi2_pins_a>;
 			pinctrl-1 = <&twi2_pins_b>;
 			twi-supply = <&reg_dcdc1>;
-			status = "okay";
+			status = "disabled";
 			
 		};
 
@@ -307,6 +309,14 @@
 			pinctrl-0 = <&pwm0_pin_a>;
 			pinctrl-1 = <&pwm0_pin_b>;
 		};
+
+		pwm5: pwm5@0300a000 {
+               		pinctrl-names = "active", "sleep";
+                        pinctrl-0 = <&pwm5_pin_a>;
+                        pinctrl-1 = <&pwm5_pin_b>;
+
+		 };
+
                 
 		/*GPADC*/
 		/*
@@ -635,13 +645,16 @@ vinc(x)_sensor_list: use sensor list
 				status = "okay";
 			};
 			csi_cci1:cci@1 {
-				status = "disabled";
+				status = "okay";
 			};
 			csi0:csi@0 {
+				pinctrl-names = "default","sleep";
+                                pinctrl-0   = <>;
+                                pinctrl-1       = <>;
 				status = "okay";
 			};
 			csi1:csi@1 {
-				status = "disabled";
+				status = "okay";
 			};
 			actuator0:actuator@0 {
 				device_type = "actuator0";
@@ -686,6 +699,7 @@ vinc(x)_sensor_list: use sensor list
 				sensor0_reset = <&pio PC 12 1 0 1 0>;
 				sensor0_pwdn = <&pio PC 2 1 0 1 1>;
 				sensor0_sm_vs = <>;
+				device_id = <0>;
 				status	= "okay";
 			};
 			sensor1:sensor@1 {

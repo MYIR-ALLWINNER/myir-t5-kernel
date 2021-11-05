@@ -1912,7 +1912,7 @@
 			pinctrl-0 = <&ts0_pins_a>;
 			pinctrl-1 = <&ts0_pins_b>;
 			ts0config = <0x1>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		ths: thermal_sensor{

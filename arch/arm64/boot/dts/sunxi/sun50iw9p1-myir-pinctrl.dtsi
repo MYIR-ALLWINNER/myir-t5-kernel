@@ -456,6 +456,25 @@
                                 allwinner,pull = <0>;
                                 allwinner,data = <0xffffffff>;
                         };
+
+			pwm5_pin_a: pwm5@0 {
+                                allwinner,pins = "PA12";
+                                allwinner,function = "pwm5";
+                                allwinner,muxsel = <0x02>;
+                                allwinner,drive = <0xffffffff>;
+                                allwinner,pull = <1>;
+                                allwinner,data = <0xffffffff>;
+                        };
+
+                        pwm5_pin_b: pwm5@1 {
+                                allwinner,pins = "PA12";
+                                allwinner,function = "io_disabled";
+                                allwinner,muxsel = <0x07>;
+                                allwinner,drive = <0xffffffff>;
+                                allwinner,pull = <0>;
+                                allwinner,data = <0xffffffff>;
+                        };
+
 			
 			spdif_pins_a: spdif@0 {
 				allwinner,pins = "PH2", "PH3", "PH4";
