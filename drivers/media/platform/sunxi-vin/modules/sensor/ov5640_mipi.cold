@@ -380,16 +380,13 @@ static int sensor_power(struct v4l2_subdev *sd, int on)
 			cci_lock(sd);
 		//	vin_gpio_set_status(sd, RESET, CSI_GPIO_HIGH);
 		//	vin_gpio_set_status(sd, PWDN, CSI_GPIO_HIGH);
-			//vin_gpio_write(sd, RESET, CSI_GPIO_HIGH);
-			//vin_gpio_write(sd, PWDN, CSI_GPIO_HIGH);
+			vin_gpio_write(sd, RESET, CSI_GPIO_HIGH);
+			vin_gpio_write(sd, PWDN, CSI_GPIO_HIGH);
 
 			vin_gpio_write(sd, RESET, CSI_GPIO_LOW);
 			vin_gpio_write(sd, PWDN, CSI_GPIO_HIGH);
-			usleep_range(1000, 1200);
 			vin_set_mclk_freq(sd, MCLK);
 			vin_set_mclk(sd, ON);
-			usleep_range(10000, 12000);
-			vin_gpio_write(sd, POWER_EN, CSI_GPIO_HIGH);
 			vin_set_pmu_channel(sd, CAMERAVDD, ON);
 			vin_set_pmu_channel(sd, IOVDD, ON);
 			vin_set_pmu_channel(sd, DVDD, ON);
@@ -407,10 +404,8 @@ static int sensor_power(struct v4l2_subdev *sd, int on)
 			vin_set_mclk(sd, OFF);
 			//vin_gpio_set_status(sd, RESET, CSI_GPIO_HIGH);
 			//vin_gpio_set_status(sd, PWDN, CSI_GPIO_HIGH);
-			vin_gpio_write(sd, POWER_EN, CSI_GPIO_LOW);
-			//vin_gpio_write(sd, RESET, CSI_GPIO_HIGH);
-			//vin_gpio_write(sd, PWDN, CSI_GPIO_HIGH);
-			usleep_range(10000, 12000);
+			vin_gpio_write(sd, RESET, CSI_GPIO_HIGH);
+			vin_gpio_write(sd, PWDN, CSI_GPIO_HIGH);
 
 			vin_set_pmu_channel(sd, CAMERAVDD, OFF);
 			vin_set_pmu_channel(sd, IOVDD, OFF);
@@ -717,7 +712,7 @@ static int sensor_s_stream(struct v4l2_subdev *sd, int enable)
 
 	sensor_write_array(ov5640_sd, ov5640_reg_stop_stream, \
 				sizeof(ov5640_reg_stop_stream) / sizeof(ov5640_reg_stop_stream[0]));
-
+	
 	if (wsize->regs)
 		sensor_write_array(ov5640_sd, wsize->regs, wsize->regs_size);
 
@@ -729,7 +724,7 @@ static int sensor_s_stream(struct v4l2_subdev *sd, int enable)
 
 	//test image
 //	sensor_write(ov5640_sd, 0x503D, 0x80); // 彩条
-	//sensor_write(ov5640_sd, 0x503D, 0x82); // 彩色四方块
+//	sensor_write(ov5640_sd, 0x503D, 0x82); // 彩色四方块
 //	sensor_write(ov5640_sd, 0x4741, 0x00);
 	
 

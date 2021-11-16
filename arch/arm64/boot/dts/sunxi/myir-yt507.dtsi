@@ -266,6 +266,7 @@
 		};
 		
 		/*twi2*/
+
 		twi2: twi@0x05002800{
 			clock-frequency = <200000>;
 			pinctrl-0 = <&twi2_pins_a>;
@@ -291,6 +292,18 @@
 			pinctrl-1 = <&twi4_pins_b>;
 			twi-supply = <&reg_cldo2>;
 			status = "okay";
+			
+			sgtl5000@2a {
+                                compatible = "allwinner,sgtl5000";
+                                device_type = "sgtl5000";
+                                clocks = <&clk_pll_audio>;
+                                reg = <0x0a>;
+                                pinctrl-0     = <&ahub_daudio2_pins_a>;
+                                pinctrl-names = "default";
+                                micbias-resistor-k-ohms = <4>;
+                                micbias-voltage-m-volts = <2250>;
+				status = "okay";
+                        };
 		};
 
 		/*twi5*/
@@ -530,7 +543,7 @@
 		};
 
 		ahub_daudio2:ahub_daudio2@0x05097000{
-			pinconfig 		= <0x01>;
+			pinconfig 		= <0x00>;//0x01
 			frametype 		= <0x00>;
 			pcm_lrck_period 	= <0x20>;
 			slot_width_select 	= <0x20>;
@@ -538,7 +551,7 @@
 			audio_format 		= <0x01>;
 			signal_inversion 	= <0x01>;
 			tdm_config 		= <0x01>;
-			mclk_div 		= <0x01>;
+			mclk_div 		= <0x04>;//0x04
 			status = "okay";
 		};
 
@@ -568,6 +581,8 @@
 		};*/
 
 		snddaudio2:sound@2{
+			sunxi,snddaudio-codec = "sgtl5000.4-000a";
+                        sunxi,snddaudio-codec-dai = "sgtl5000";
 			status = "okay";
 		};
 
@@ -702,6 +717,36 @@ vinc(x)_sensor_list: use sensor list
 				device_id = <0>;
 				status	= "okay";
 			};
+
+			sensor1:sensor@1 {
+				device_type = "sensor1";
+				sensor1_mname = "ov2659";
+				sensor1_twi_cci_id = <1>;
+				sensor1_twi_addr = <0x60>;
+				sensor1_mclk_id = <1>;
+				sensor1_pos = "front";
+				sensor1_isp_used = <0>;
+				sensor1_fmt = <0>;
+				sensor1_stby_mode = <0>;
+				sensor1_vflip = <0>;
+				sensor1_hflip = <0>;
+				//sensor1_cameravdd-supply = <&reg_aldo5>;
+				//sensor1_cameravdd_vol = <3300000>;
+				sensor1_iovdd-supply = <&reg_aldo5>;
+				sensor1_iovdd_vol = <3300000>;
+				/*
+				sensor1_avdd-supply = <&reg_bldo4>;
+				sensor1_avdd_vol = <1200000>;
+				sensor1_dvdd-supply = <&reg_bldo5>;
+				sensor1_dvdd_vol = <1200000>;
+				*/
+				sensor1_power_en = <>;
+				sensor1_reset = <&pio PE 16 1 0 1 0>;
+				sensor1_pwdn = <&pio PE 17 1 0 1 0>;
+				sensor1_sm_vs = <>;
+				status	= "okay";
+			};
+/*
 			sensor1:sensor@1 {
 				device_type = "sensor1";
 				sensor1_mname = "nvp6158";
@@ -728,6 +773,7 @@ vinc(x)_sensor_list: use sensor list
 				sensor1_sm_vs = <>;
 				status	= "disabled";
 			};
+*/
 			vinc0:vinc@0 {
 				vinc0_csi_sel = <0>;
 				vinc0_mipi_sel = <0>;
@@ -980,7 +1026,7 @@ vinc(x)_sensor_list: use sensor list
 			reg_bldo1: bldo1 {
 				regulator-name = "axp858-bldo1";
 				regulator-min-microvolt = <700000>;
-				regulator-max-microvolt = <3300000>;
+				regulator-max-microvolt = <1800000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;
@@ -1183,10 +1229,11 @@ vinc(x)_sensor_list: use sensor list
 	cpu-supply = <&reg_dcdc2>;
 };
 
+/*
 &csi1 {
 	status = "disabled";
 };
-
+*/
 &gpadc {
         channel_num = <4>;
         channel_select = <0xf>;
