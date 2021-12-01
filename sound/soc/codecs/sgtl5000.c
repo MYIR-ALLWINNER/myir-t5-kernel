@@ -958,14 +958,14 @@ static int sgtl5000_set_power_regs(struct snd_soc_codec *codec)
 	size_t i;
 	struct sgtl5000_priv *sgtl5000 = snd_soc_codec_get_drvdata(codec);
 
-	//vdda  = regulator_get_voltage(sgtl5000->supplies[VDDA].consumer);
-	//vddio = regulator_get_voltage(sgtl5000->supplies[VDDIO].consumer);
-	//vddd  = (sgtl5000->num_supplies > VDDD)
-	//	? regulator_get_voltage(sgtl5000->supplies[VDDD].consumer)
-	//	: LDO_VOLTAGE;
-	vdda  = 3300000;
-	vddio = 3300000;
-	vddd  = 1800000;
+	vdda  = regulator_get_voltage(sgtl5000->supplies[VDDA].consumer);
+	vddio = regulator_get_voltage(sgtl5000->supplies[VDDIO].consumer);
+	vddd  = (sgtl5000->num_supplies > VDDD)
+		? regulator_get_voltage(sgtl5000->supplies[VDDD].consumer)
+		: LDO_VOLTAGE;
+	//vdda  = 3300000;
+	//vddio = 3300000;
+	//vddd  = 1800000;
 
 	vdda  = vdda / 1000;
 	vddio = vddio / 1000;
@@ -1155,6 +1155,16 @@ static int sgtl5000_probe(struct snd_soc_codec *codec)
 	snd_soc_update_bits(codec, SGTL5000_CHIP_MIC_CTRL,
 			SGTL5000_BIAS_VOLT_MASK,
 			sgtl5000->micbias_voltage << SGTL5000_BIAS_VOLT_SHIFT);
+	
+	//snd_soc_update_bits(codec, SGTL5000_CHIP_LINREG_CTRL, 0x0060,(1<<5 | 0<<6));
+	//snd_soc_update_bits(codec, SGTL5000_CHIP_LINE_OUT_CTRL, 0x0322);
+	snd_soc_write(codec, SGTL5000_CHIP_LINE_OUT_CTRL, 0x0322);
+
+	snd_soc_update_bits(codec,SGTL5000_CHIP_ANA_POWER,0x0060,(1<<5 | 1<<6) );
+	 snd_soc_write(codec, SGTL5000_CHIP_LINE_OUT_VOL, 0x0F0F);
+	 //snd_soc_update_bits(codec,SGTL5000_CHIP_SSS_CTRL,0x00F0,0x0070 );
+	// snd_soc_update_bits(codec,SGTL5000_CHIP_ANA_CTRL,0x0040,0<<6);
+	 //snd_soc_write(codec, SGTL5000_CHIP_ANA_CTRL, 0x6AFF);
 	/*
 	 * disable DAP
 	 * TODO:
@@ -1304,7 +1314,8 @@ static int sgtl5000_i2c_probe(struct i2c_client *client,
 
 	/* Follow section 2.2.1.1 of AN3663 */
 	ana_pwr = SGTL5000_ANA_POWER_DEFAULT;
-	if (sgtl5000->num_supplies <= VDDD) {
+	if (sgtl5000->num_supplies <= VDDD) {//<=
+		printk("internal VDDD ========================================>%d%d\n", VDDD, sgtl5000->num_supplies);
 		/* internal VDDD at 1.2V */
 		ret = regmap_update_bits(sgtl5000->regmap,
 					 SGTL5000_CHIP_LINREG_CTRL,
@@ -1322,11 +1333,13 @@ static int sgtl5000_i2c_probe(struct i2c_client *client,
 		 * Clear startup powerup and simple powerup
 		 * bits to save power
 		 */
+		printk("external VDDD =======================================> %d%d\n", VDDD, sgtl5000->num_supplies);
 		ana_pwr &= ~(SGTL5000_STARTUP_POWERUP
 			     | SGTL5000_LINREG_SIMPLE_POWERUP);
 		dev_dbg(&client->dev, "Using external VDDD\n");
 	}
-	ret = regmap_write(sgtl5000->regmap, SGTL5000_CHIP_ANA_POWER, ana_pwr);
+//	ret = regmap_write(sgtl5000->regmap, SGTL5000_CHIP_ANA_POWER, ana_pwr);
+	ret = regmap_write(sgtl5000->regmap, SGTL5000_CHIP_ANA_POWER, /*ana_pwr*/0x4260);	
 	if (ret)
 		dev_err(&client->dev,
 			"Error %d setting CHIP_ANA_POWER to %04x\n",

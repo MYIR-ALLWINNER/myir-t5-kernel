@@ -136,7 +136,7 @@ clocks {
 			#clock-cells = <0>;
 			compatible = "allwinner,pll-clock";
 			assigned-clocks = <&clk_pll_audiox4>;
-			assigned-clock-rates = <98304000>;
+			assigned-clock-rates = <98304000>;//98304000
 			lock-mode = "new";
 			clock-output-names = "pll_audiox4";
 		};

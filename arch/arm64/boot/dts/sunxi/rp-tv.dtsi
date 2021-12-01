@@ -43,10 +43,10 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			disp_mode                = <0>;
 
 			screen0_output_type      = <2>;
-			screen0_output_mode      = <4>;
+			screen0_output_mode      = <1>;
 
 			screen1_output_type      = <2>;
-			screen1_output_mode      = <4>;
+			screen1_output_mode      = <1>;
 
 			
 			//screen0_output_format    = <0>;
@@ -68,21 +68,21 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			//screen1_output_aspect_ratio = <8>;
 
 			dev0_output_type         = <2>;
-			dev0_output_mode         = <4>;
+			dev0_output_mode         = <1>;
 			dev0_screen_id           = <0>;
 			dev0_do_hpd              = <1>;
 
 			dev1_output_type         = <2>;
-			dev1_output_mode         = <4>;
+			dev1_output_mode         = <1>;
 			dev1_screen_id           = <1>;
 			dev1_do_hpd              = <1>;
 
 			def_output_dev           = <0>;
 			hdmi_mode_check          = <0>;
 
-			fb0_format               = <9>;
-			fb0_width                = <1280>;
-			fb0_height               = <720>;
+			fb0_format               = <0>;
+			fb0_width                = <720>;
+			fb0_height               = <576>;
 
 			fb1_format               = <0>;
 			fb1_width                = <0>;

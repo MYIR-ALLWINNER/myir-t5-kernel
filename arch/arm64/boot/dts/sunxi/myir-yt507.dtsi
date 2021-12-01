@@ -8,16 +8,20 @@
 #include <dt-bindings/gpio/gpio.h>
 #include "sun50iw9p1-myir.dtsi"     
 //#include "myir-lcd-1lvds-7-1024-600.dtsi"
-#include "myir-lcd-2lvds-7-1024-600-10-1280-800.dtsi"
+//#include "myir-lcd-2lvds-7-1024-600-10-1280-800.dtsi"
 //#include "myir-lcd-lvds-10.1-1280-800.dtsi" 
+
 //#include "rp-lcd-lvds-10.1-1024-600.dtsi"
 //#include "rp-lcd-rgb-7-1024-600.dtsi"
 //#include "rp-lcd-lvds-21-1920-1080.dtsi"
 //#include "rp-lcd-lvds-10.1-1024-600-hdmi.dtsi"
 //#include "rp-lcd-lvds-10.1-1280-720.dtsi"
-//##include "rp-hdmi.dtsi"
+#include "rp-hdmi.dtsi"
+
 //#include "myir-lvds-7-1024-600.dtsi"
+//#include "myir-tv.dtsi"
 //#include "rp-tv.dtsi"
+
 
 /{
 	model = "sun50iw9 myir-yt507";
@@ -38,6 +42,24 @@
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
 	};
+
+	reg_audio_vdd: audio_vdd {
+                compatible = "regulator-fixed";
+                regulator-name = "audio-vdd";
+                regulator-min-microvolt = <3300000>;
+                regulator-max-microvolt = <3300000>;
+                enable-active-high;
+        };
+
+	 reg_audio_vdd1v8: audio_vdd1v8 {
+                compatible = "regulator-fixed";
+                regulator-name = "audio-vdd1v8";
+                regulator-min-microvolt = <1800000>;
+                regulator-max-microvolt = <1800000>;
+                enable-active-high;
+        };
+
+
 	
        pw_en {
                compatible = "pw-en-gpio";
@@ -145,11 +167,11 @@
 		};
 
 		sdc2: sdmmc@04022000 {
-			pinctrl-0 = <&sdc2_pins_a &sdc2_pins_c>;
+		//	pinctrl-0 = <&sdc2_pins_a &sdc2_pins_c>;
 			non-removable;
 			bus-width = <8>;
 			mmc-ddr-1_8v;
-			mmc-hs200-1_8v;
+		//	mmc-hs200-1_8v;
 			mmc-hs400-1_8v;
 			no-sdio;
 			no-sd;
@@ -157,7 +179,7 @@
 			sunxi-power-save-mode;
 			sunxi-dis-signal-vol-sw;
 			max-frequency = <100000000>;
-			ctl-spec-caps = <0x308>;
+		//	ctl-spec-caps = <0x308>;
 			vmmc-supply = <&reg_aldo1>;
 			vqmmc-supply = <&reg_dcdc1>;
 			status = "okay";
@@ -192,7 +214,7 @@
 			status = "okay";
 		};
 
-		/*eMMC*/
+		/*wifi*/
 		sdc1: sdmmc@04021000 {
 			pinctrl-0 = <&sdc1_pins_a>;
 			bus-width = <4>;
@@ -293,13 +315,17 @@
 			twi-supply = <&reg_cldo2>;
 			status = "okay";
 			
-			sgtl5000@2a {
+			sgtl5000@0a {
                                 compatible = "allwinner,sgtl5000";
                                 device_type = "sgtl5000";
                                 clocks = <&clk_pll_audio>;
                                 reg = <0x0a>;
                                 pinctrl-0     = <&ahub_daudio2_pins_a>;
                                 pinctrl-names = "default";
+			
+				VDDA-supply = <&reg_audio_vdd>;
+				VDDIO-supply = <&reg_audio_vdd>;
+				VDDD-supply = <&reg_audio_vdd1v8>;
                                 micbias-resistor-k-ohms = <4>;
                                 micbias-voltage-m-volts = <2250>;
 				status = "okay";
@@ -493,15 +519,15 @@
 			fmin_gain   = <0x03>;
 			linein_gain = <0x03>;
 			digital_vol = <0x00>;
-			lineout_vol = <0x1f>;
+			lineout_vol = <0x1f>;//默认输出音量
 			/* gpio-spk */
 //			gpio-spk = <&pio PH 9 1 0xffffffff 0xffffffff 0>;
-			gpio-spk = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+//			gpio-spk = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
 			pa_ctl_level   = <0x01>;
 			pa_msleep_time = <0x78>;
 			ramp_func_used = <0x01>;
-			avcc-supply = <&reg_aldo2>;
-			status = "okay";
+			//avcc-supply = <&reg_aldo2>;
+			status = "disabled";
 		};
 
 		spdif:spdif-controller@0x05093000{
@@ -543,15 +569,15 @@
 		};
 
 		ahub_daudio2:ahub_daudio2@0x05097000{
-			pinconfig 		= <0x00>;//0x01
+			pinconfig 		= <0x01>;//0x01
 			frametype 		= <0x00>;
 			pcm_lrck_period 	= <0x20>;
 			slot_width_select 	= <0x20>;
 			daudio_master 		= <0x04>;
-			audio_format 		= <0x01>;
+			audio_format 		= <0x01>;//01: standard i2s format
 			signal_inversion 	= <0x01>;
-			tdm_config 		= <0x01>;
-			mclk_div 		= <0x04>;//0x04
+			tdm_config 		= <0x01>;//00:pcm  01:i2s
+			mclk_div 		= <0x04>;//0x04?分频为什么要这样分.默认24MHZ
 			status = "okay";
 		};
 
@@ -718,11 +744,37 @@ vinc(x)_sensor_list: use sensor list
 				status	= "okay";
 			};
 
+/*
 			sensor1:sensor@1 {
 				device_type = "sensor1";
 				sensor1_mname = "ov2659";
 				sensor1_twi_cci_id = <1>;
 				sensor1_twi_addr = <0x60>;
+				sensor1_mclk_id = <1>;
+				sensor1_pos = "front";
+				sensor1_isp_used = <0>;
+				sensor1_fmt = <0>;
+				sensor1_stby_mode = <0>;
+				sensor1_vflip = <0>;
+				sensor1_hflip = <0>;
+				//sensor1_cameravdd-supply = <&reg_aldo5>;
+				//sensor1_cameravdd_vol = <3300000>;
+				sensor1_iovdd-supply = <&reg_aldo5>;
+				sensor1_iovdd_vol = <3300000>;
+				sensor1_power_en = <>;
+				sensor1_reset = <&pio PE 16 1 0 1 0>;
+				sensor1_pwdn = <&pio PE 17 1 0 1 0>;
+				sensor1_sm_vs = <>;
+				status	= "okay";
+			};
+*/
+			sensor1:sensor@1 {
+				device_type = "sensor1";
+				//sensor1_mname = "ov2659";
+				sensor1_mname = "ov5640_dvp";
+				sensor1_twi_cci_id = <1>;
+				//sensor1_twi_addr = <0x60>;
+				sensor1_twi_addr = <0x78>;
 				sensor1_mclk_id = <1>;
 				sensor1_pos = "front";
 				sensor1_isp_used = <0>;
@@ -741,39 +793,12 @@ vinc(x)_sensor_list: use sensor list
 				sensor1_dvdd_vol = <1200000>;
 				*/
 				sensor1_power_en = <>;
-				sensor1_reset = <&pio PE 16 1 0 1 0>;
-				sensor1_pwdn = <&pio PE 17 1 0 1 0>;
+				sensor1_reset = <>;
+				sensor1_pwdn = <>;
 				sensor1_sm_vs = <>;
 				status	= "okay";
-			};
-/*
-			sensor1:sensor@1 {
-				device_type = "sensor1";
-				sensor1_mname = "nvp6158";
-				sensor1_twi_cci_id = <1>;
-				sensor1_twi_addr = <0x64>;
-				sensor1_mclk_id = <1>;
-				sensor1_pos = "front";
-				sensor1_isp_used = <0>;
-				sensor1_fmt = <0>;
-				sensor1_stby_mode = <0>;
-				sensor1_vflip = <0>;
-				sensor1_hflip = <0>;
-				sensor1_cameravdd-supply = <&reg_aldo5>;
-				sensor1_cameravdd_vol = <3300000>;
-				sensor1_iovdd-supply = <&reg_bldo3>;
-				sensor1_iovdd_vol = <3300000>;
-				sensor1_avdd-supply = <&reg_bldo4>;
-				sensor1_avdd_vol = <1200000>;
-				sensor1_dvdd-supply = <&reg_bldo5>;
-				sensor1_dvdd_vol = <1200000>;
-				sensor1_power_en = <>;
-				sensor1_reset = <&pio PI 12 1 0 1 0>;
-				sensor1_pwdn = <&pio PI 14 1 0 1 0>;
-				sensor1_sm_vs = <>;
-				status	= "disabled";
-			};
-*/
+			};			
+
 			vinc0:vinc@0 {
 				vinc0_csi_sel = <0>;
 				vinc0_mipi_sel = <0>;
@@ -851,7 +876,7 @@ vinc(x)_sensor_list: use sensor list
 		dac_type0       = <0>;
 
 		interface       = <1>;
-		tv_power = "cldo4";
+		tv_power = "reg_cldo4";
 		};
 	};
 	gpu: gpu@0x01800000 {
@@ -1095,8 +1120,8 @@ vinc(x)_sensor_list: use sensor list
 
 			reg_cldo4: cldo4 {
 				regulator-name = "axp858-cldo4";
-				regulator-min-microvolt = <700000>;
-				regulator-max-microvolt = <4200000>;
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;
