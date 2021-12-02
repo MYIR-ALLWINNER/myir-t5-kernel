@@ -228,6 +228,7 @@
 				allwinner,pull = <0>;
 			};
 
+/*
 			twi2_pins_a: twi2@0 {
 				allwinner,pins = "PE20", "PE21";
 				allwinner,pname = "twi2_scl", "twi2_sda";
@@ -244,6 +245,7 @@
 				allwinner,drive = <1>;
 				allwinner,pull = <0>;
 			};
+*/
 
 			twi3_pins_a: twi3@0 {
 				allwinner,pins = "PA10", "PA11";
@@ -484,7 +486,7 @@
 				allwinner,pull = <0>;
 			};
 			
-			
+		/*	
 			pwr_pins: pwr {
 				allwinner,pins = "PE11","PE3","PE4","PE5","PE16","PE2";
 				allwinner,function = "gpio";
@@ -492,6 +494,7 @@
 				allwinner,drive = <3>;
 				allwinner,pull = <1>;
 			};
+		*/
 
 			spdif_pins_b: spdif_sleep@0 {
 				allwinner,pins = "PH2", "PH3", "PH4";
@@ -587,14 +590,10 @@
 
 			csi1_pins_a: csi1@0 {
 				allwinner,pins = "PE0", "PE2", "PE3", "PE4", "PE5",
-						 "PE6", "PE7", "PE8", "PE9", "PE10", "PE11",
-						 "PE12", "PE13", "PE14", "PE15", "PE16", "PE17",
-						  "PE18", "PE19";
+						 "PE6", "PE7", "PE8", "PE9", "PE10", "PE11";
 				allwinner,pname = "csi1_pck", "csi1_hsync", "csi1_vsync",
 						  "csi1_d0", "csi1_d1", "csi1_d2", "csi1_d3",
-						  "csi1_d4", "csi1_d5", "csi1_d6", "csi1_d7",
-						  "csi1_d8", "csi1_d9", "csi1_d10", "csi1_d11",
-						  "csi1_d12", "csi1_d13", "csi1_d14", "csi1_d15";
+						  "csi1_d4", "csi1_d5", "csi1_d6", "csi1_d7";
 				allwinner,function = "csi1";
 				allwinner,muxsel = <2>;
 				allwinner,drive = <1>;
@@ -603,14 +602,10 @@
 
 			csi1_pins_b: csi1@1 {
 				allwinner,pins = "PE0", "PE2", "PE3", "PE4", "PE5",
-						 "PE6", "PE7", "PE8", "PE9", "PE10", "PE11",
-						 "PE12", "PE13", "PE14", "PE15", "PE16", "PE17",
-						  "PE18", "PE19";
+						 "PE6", "PE7", "PE8", "PE9", "PE10", "PE11";
 				allwinner,pname = "csi1_pck", "csi1_hsync", "csi1_vsync",
 						  "csi1_d0", "csi1_d1", "csi1_d2", "csi1_d3",
-						  "csi1_d4", "csi1_d5", "csi1_d6", "csi1_d7",
-						  "csi1_d8", "csi1_d9", "csi1_d10", "csi1_d11",
-						  "csi1_d12", "csi1_d13", "csi1_d14", "csi1_d15";
+						  "csi1_d4", "csi1_d5", "csi1_d6", "csi1_d7";
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
 				allwinner,drive = <1>;

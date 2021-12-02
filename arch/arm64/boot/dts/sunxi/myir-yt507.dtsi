@@ -63,6 +63,7 @@
 	
        pw_en {
                compatible = "pw-en-gpio";
+/*
                gpio0 = <&pio PE 11 1 0xffffffff 0xffffffff 1>;// 5v 3.3V
                gpio1 = <&pio PE 3 1 0xffffffff 0xffffffff 1>; //USB 5V
                gpio2 = <&pio PE 16 1 0xffffffff 0xffffffff 1>;// hub reset
@@ -70,6 +71,7 @@
                gpio8 = <&pio PE 9 1 0xffffffff 0xffffffff 0>;// otg mode
                gpio9 = <&pio PE 2 1 0xffffffff 0xffffffff 0>;// otg pwr
 	       pinctrl-0 = <&pwr_pins>;
+*/
                status = "okay";
        };       
        
@@ -288,7 +290,7 @@
 		};
 		
 		/*twi2*/
-
+/*
 		twi2: twi@0x05002800{
 			clock-frequency = <200000>;
 			pinctrl-0 = <&twi2_pins_a>;
@@ -297,6 +299,7 @@
 			status = "disabled";
 			
 		};
+*/
 
 		/*twi3*/
 		twi3: twi@0x05002c00{
@@ -412,8 +415,8 @@
 			wlan_busnum   = <0x1>;
 			wlan_power    = "axp858-dcdc1";
 			wlan_io_regulator = "axp858-cldo2";
-			wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
-			wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
+			//wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
+			//wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
 			chip_en;
 			power_en;
 			status        = "disabled";
@@ -432,7 +435,7 @@
 			compatible  = "allwinner,sunxi-btlpm";
 			uart_index  = <0x1>;
 		//	bt_wake     = <&pio PE 7 1 0xffffffff 0xffffffff 1>;
-			bt_hostwake = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+		//	bt_hostwake = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
 			status      = "disabled";
 		};
 
@@ -461,8 +464,8 @@
 			usb_port_type		= <0x2>;
 			usb_detect_type		= <0x1>;
 			usb_detect_mode		= <0x0>;
-			usb_id_gpio		= <&pio PE 0 0 1 0 0>;
-			usb_det_vbus_gpio	= <&pio PE 1 0 1 0 0>;
+			//usb_id_gpio		= <&pio PE 0 0 1 0 0>;
+			//usb_det_vbus_gpio	= <&pio PE 1 0 1 0 0>;
 			usb_regulator_io	= "nocare";
 			usb_wakeup_suspend	= <0x0>;
 			usb_luns		= <0x3>;
@@ -689,9 +692,6 @@ vinc(x)_sensor_list: use sensor list
 				status = "okay";
 			};
 			csi0:csi@0 {
-				pinctrl-names = "default","sleep";
-                                pinctrl-0   = <>;
-                                pinctrl-1       = <>;
 				status = "okay";
 			};
 			csi1:csi@1 {
@@ -817,7 +817,7 @@ vinc(x)_sensor_list: use sensor list
 				vinc1_rear_sensor_sel = <0>;
 				vinc1_front_sensor_sel = <0>;
 				vinc1_sensor_list = <0>;
-				status = "okay";
+				status = "disabled";
 			};
 			vinc2:vinc@2 {
 				vinc2_csi_sel = <1>;
@@ -837,7 +837,7 @@ vinc(x)_sensor_list: use sensor list
 				vinc3_rear_sensor_sel = <1>;
 				vinc3_front_sensor_sel = <1>;
 				vinc3_sensor_list = <0>;
-				status = "okay";
+				status = "disabled";
 			};
 			vinc4:vinc@4 {
 				vinc4_csi_sel = <1>;
@@ -1041,8 +1041,8 @@ vinc(x)_sensor_list: use sensor list
 
 			reg_aldo5: aldo5 {
 				regulator-name = "axp858-aldo5";
-				regulator-min-microvolt = <1200000>;
-				regulator-max-microvolt = <1200000>;
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <3300000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;

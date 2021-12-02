@@ -410,6 +410,7 @@ static int sensor_detect(struct v4l2_subdev *sd)
 	data_type rdval = 0;
 	data_type pid, ver;
 
+	printk("!!!! %s\n", __func__);
 	ret = sensor_write(sd, 0x3103, 0x11);
 	if (ret < 0)
 		return -ENODEV;
