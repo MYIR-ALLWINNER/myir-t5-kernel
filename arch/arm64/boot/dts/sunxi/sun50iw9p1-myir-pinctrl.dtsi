@@ -799,7 +799,7 @@
 				allwinner,function = "gmac0";
 				allwinner,muxsel = <2>;
 				allwinner,drive = <3>;
-				allwinner,pull = <0>;
+				allwinner,pull = <1>;
 			};
 
 			gmac_pins_b: gmac@1 {

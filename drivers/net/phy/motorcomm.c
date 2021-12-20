@@ -366,7 +366,7 @@ int yt8511_config_dis_txdelay(struct mii_bus *bus, int phy_id)
 	Tx Delay time = 150ps * N - 250ps
     */
     val &= ~(0xf << 4);
-    //val |= (0x5 << 4);
+    val |= (0x8 << 4);
     //val |= BIT(0);
     //val |= BIT(3);
     ret = ytphy_mii_wr_ext(bus, phy_id, 0xc, val);
@@ -374,6 +374,17 @@ int yt8511_config_dis_txdelay(struct mii_bus *bus, int phy_id)
     val = ytphy_mii_rd_ext(bus, phy_id, 0xc);
     printk("yt8511_config_dis_txdelay..phy read txdelay, val=%#08x\n",val);
 
+#if 1
+    /* enable RXC clock when no wire plug */
+    val = ytphy_mii_rd_ext(bus, phy_id, 0x1e);
+    if (val < 0)
+	    return val;
+    printk("yt8511 rxdelay val = %#08x\n", val);
+    /* ext reg 0x1e*/
+    val = 0x300;
+    ret = ytphy_mii_wr_ext(bus, phy_id, 0x1e, val);
+                    printk("yt8511_config_dis_rxdelay..phy rxdelay, val=%#08x\n",val);
+#endif 
 
     return ret;
 }

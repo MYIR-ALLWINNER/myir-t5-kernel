@@ -536,7 +536,7 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
 	printk (KERN_INFO "yzhang..read phyaddr=%d, phyid=%08x\n",addr, phy_id);
 	if(0x10a == phy_id)
 	{
-#if 0
+#if 1
 		r = yt8511_config_dis_txdelay(bus, addr);
 		printk (KERN_INFO "yzhang..8511 dis txdelay, reg=%#04x\n",bus->read(bus,addr,0x1f)/*double check as delay*/);
 		if (r<0)

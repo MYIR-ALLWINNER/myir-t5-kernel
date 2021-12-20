@@ -111,7 +111,7 @@
 	
 	i2c@0{
 		compatible = "i2c-gpio";
-		status = "okay";
+		status = "disabled";
 		gpios = <&pio PD 26 1 1 1 0 /*SDA*/
 			 &pio PD 25 1 1 1 0 /*SCL*/
 			>;
@@ -243,14 +243,14 @@
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
 			use_ephy25m = <1>;
-			tx-delay = <1>;
-			rx-delay = <24>;
-			//gmac-power0-supply = <&reg_cldo3>;
-			//gmac-power1-supply;
-			//gmac-power2-supply;
-			//gmac-power0-vol = <3300000>;
-			//gmac-power1-vol;
-			//gmac-power2-vol;
+			tx-delay = <2>;
+			rx-delay = <23>;
+			gmac-power0-supply = <&reg_cldo3>;
+			gmac-power1-supply;
+			gmac-power2-supply;
+			gmac-power0-vol = <3300000>;
+			gmac-power1-vol;
+			gmac-power2-vol;
 			status = "okay";
 		};
 
@@ -307,7 +307,7 @@
 			pinctrl-0 = <&twi3_pins_a>;
 			pinctrl-1 = <&twi3_pins_b>;
 			twi-supply = <&reg_dcdc1>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		/*twi4*/
@@ -316,7 +316,7 @@
 			pinctrl-0 = <&twi4_pins_a>;
 			pinctrl-1 = <&twi4_pins_b>;
 			twi-supply = <&reg_cldo2>;
-			status = "okay";
+			status = "disabled";
 			
 			sgtl5000@0a {
                                 compatible = "allwinner,sgtl5000";
@@ -340,7 +340,7 @@
 			clock-frequency = <200000>;
 			pinctrl-0 = <&s_twi0_pins_a>;
 			pinctrl-1 = <&s_twi0_pins_b>;
-			status = "okay";
+			status = "disabled";
 
 			
 		};
@@ -377,14 +377,14 @@
 
 		/*BT*/
 		uart1: uart@05000400 {
-			status = "okay";
+			status = "disabled";
 		};
 		
 		/*RS232*/
 		uart2: uart@05000800 {
 			uart-supply = <&reg_cldo3>;
 			uart2_type = <2>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		/*NO USE*/
@@ -530,7 +530,7 @@
 			pa_msleep_time = <0x78>;
 			ramp_func_used = <0x01>;
 			//avcc-supply = <&reg_aldo2>;
-			status = "okay";
+			status = "disabled";
 		};
 
 		spdif:spdif-controller@0x05093000{
@@ -612,7 +612,7 @@
 		snddaudio2:sound@2{
 			sunxi,snddaudio-codec = "sgtl5000.4-000a";
                         sunxi,snddaudio-codec-dai = "sgtl5000";
-			status = "okay";
+			status = "disabled";
 		};
 
 		snddaudio0:sound@0{
@@ -683,7 +683,7 @@ vinc(x)_sensor_list: use sensor list
 --------------------------------------------------------------------------------*/
 		vind0:vind@0 {
 			vind0_clk = <324000000>;
-			status = "okay";
+			status = "disabled";
 
 			csi_cci0:cci@0 {
 				status = "okay";
@@ -871,7 +871,7 @@ vinc(x)_sensor_list: use sensor list
 ;NOTE:              tv0,tv1 can not use the same dac_src.
 ;---------------------------------------------------------------------------------*/
 	tv0: tv0@01c94000 {
-		status =  "okay";
+		status =  "disabled";
 		dac_src0        = <0>;
 		dac_type0       = <0>;
 
@@ -915,7 +915,7 @@ vinc(x)_sensor_list: use sensor list
 
 &twi5 {
 	no_suspend = <1>;
-	status = "okay";
+	status = "disabled";
 
 	pmu0: pmu@36{
 		compatible = "x-powers,axp858";
@@ -1264,5 +1264,5 @@ vinc(x)_sensor_list: use sensor list
         channel_num = <4>;
         channel_select = <0xf>;
         channel_data_select = <0xf>;
-        status = "okay";
+        status = "disabled";
 };
