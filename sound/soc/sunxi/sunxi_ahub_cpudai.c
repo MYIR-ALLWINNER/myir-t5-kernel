@@ -222,6 +222,9 @@ static int sunxi_ahub_i2s_capture_route_enable(
 			(1<<I2S2_GAT), (1<<I2S2_GAT));
 		sunxi_ahub_update_bits(SUNXI_AHUB_I2S_CTL(2),
 			(1<<I2S_CTL_RXEN), (1<<I2S_CTL_RXEN));
+
+                sunxi_ahub_update_bits(SUNXI_AHUB_I2S_CTL(2),
+                                (1<<I2S_CTL_SDI0_EN), (1<<I2S_CTL_SDI0_EN));
 	}
 
 	if (reg_val == (1<<i2s3_cap_bit)) {

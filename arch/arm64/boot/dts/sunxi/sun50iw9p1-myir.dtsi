@@ -1100,9 +1100,9 @@
 			compatible = "allwinner,sunxi-ahub-daudio";
 			reg = <0x0 0x05097000 0x0 0xADF>;
 			clocks = <&clk_pll_audio>,<&clk_pll_audiox4>,<&clk_ahub>;
-			//pinctrl-names = "default","sleep";
-			//pinctrl-0 = <&ahub_daudio2_pins_a>;
-			//pinctrl-1 = <&ahub_daudio2_pins_b>;
+			pinctrl-names = "default","sleep";
+			pinctrl-0 = <&ahub_daudio2_pins_a>;
+			pinctrl-1 = <&ahub_daudio2_pins_b>;
 			tdm_num = <0x02>;
 			device_type = "ahub_daudio2";
 			status = "okay";

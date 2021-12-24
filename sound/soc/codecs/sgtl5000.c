@@ -516,7 +516,7 @@ static int sgtl5000_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 
 	switch (clk_id) {
 	case SGTL5000_SYSCLK:
-		sgtl5000->sysclk = freq / 4; //sgtl5000->sysclk = freq
+		sgtl5000->sysclk = 12000000; //sgtl5000->sysclk = freq
 		break;
 	default:
 		return -EINVAL;
@@ -1266,6 +1266,7 @@ static int sgtl5000_i2c_probe(struct i2c_client *client,
 		goto disable_regs;
 	}
 
+#if 0
 	sgtl5000->mclk = devm_clk_get(&client->dev, NULL);
 	if (IS_ERR(sgtl5000->mclk)) {
 		ret = PTR_ERR(sgtl5000->mclk);
@@ -1281,6 +1282,7 @@ static int sgtl5000_i2c_probe(struct i2c_client *client,
 		dev_err(&client->dev, "Error enabling clock %d\n", ret);
 		goto disable_regs;
 	}
+#endif
 
 	/* Need 8 clocks before I2C accesses */
 	udelay(1);

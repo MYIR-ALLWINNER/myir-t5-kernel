@@ -84,7 +84,7 @@ static int sunxi_snddaudio_hw_params(struct snd_pcm_substream *substream,
 
 	/* set codec dai fmt */
 	ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_I2S |
-			SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBS_CFS);
+			SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM);
 	if (ret < 0)
 		dev_warn(card->dev, "codec dai set fmt failed\n");
 
