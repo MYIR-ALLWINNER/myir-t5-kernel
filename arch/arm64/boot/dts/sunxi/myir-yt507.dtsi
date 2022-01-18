@@ -6,21 +6,16 @@
 /dts-v1/;
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
-#include "sun50iw9p1-myir.dtsi"     
-//#include "myir-lcd-1lvds-7-1024-600.dtsi"
-//#include "myir-lcd-2lvds-7-1024-600-10-1280-800.dtsi"
-//#include "myir-lcd-lvds-10.1-1280-800.dtsi" 
+#include "sun50iw9p1-myir.dtsi"
 
-//#include "rp-lcd-lvds-10.1-1024-600.dtsi"
-//#include "rp-lcd-rgb-7-1024-600.dtsi"
-//#include "rp-lcd-lvds-21-1920-1080.dtsi"
-//#include "rp-lcd-lvds-10.1-1024-600-hdmi.dtsi"
-//#include "rp-lcd-lvds-10.1-1280-720.dtsi"
-#include "rp-hdmi.dtsi"
-
-//#include "myir-lvds-7-1024-600.dtsi"
-//#include "myir-tv.dtsi"
-//#include "rp-tv.dtsi"
+/*display*/
+#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
+//#include "display/myir-lcd-1lvds-7-1024-600.dtsi"
+//#include "display/myir-lcd-lvds-10.1-1280-800.dtsi" 
+//#include "display/myir-lcd-2lvds-7-1024-600.dtsi"
+//#include "display/myir-lcd-2lvds-21-1920-1080.dtsi"
+//#include "display/myir-hdmi.dtsi"
+//#include "display/myir-tv.dtsi"
 
 
 /{
@@ -75,26 +70,6 @@
                status = "okay";
        };       
        
-      rp_gpio{
-              status = "okay";
-              compatible = "rp_gpio";
-	      /*GPIO LED*/
-              //led {
-              //    gpio_num = <&pio PE 19 1 0xffffffff 0xffffffff 1>;
-              //    gpio_function = <3>;            //0:output 1:input 2:IRQ 3:flash
-                  //gpio_event = <KEY_F14>;
-                  //send_mode = <0>;  
-              //};
-	};
-/*
-	backlight {
-        	status = "okay";
-        	compatible = "pwm-backlight";
-        	pwms = <&pwm0 0 50000 0>;
-        	brightness-levels = <0 2 4 8 16 32 64 128 255>;
-		defaults-brightness-level = <128>;
-	};
-*/
 	leds {
 		compatible = "gpio-leds";
     		pinctrl-names = "default";
@@ -109,30 +84,6 @@
 
 	};
 	
-	i2c@0{
-		compatible = "i2c-gpio";
-		status = "okay";
-		gpios = <&pio PD 26 1 1 1 0 /*SDA*/
-			 &pio PD 25 1 1 1 0 /*SCL*/
-			>;
-
-		//i2c-gpio,sda-open-drain;
-		//i2c-gpio,scl-open-drain;
-		//i2c-gpio,delay-us = <2>;	/* ~100 kHz */
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		edt-ft5x06@38 {
-			compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
-			reg = <0x38>;
-			interrupt-parent = <&pio>;
-                        interrupts = <PD 24 IRQ_TYPE_LEVEL_LOW>;
-                        gpio-controller;
-			reset-gpios = <&pio PD 27 1 0xffffffff 0xffffffff 1>;
-			status = "okay";
-		};
-	};	
-
 	soc@03000000 {
 		pio: pinctrl@0300b000 {
 
@@ -338,8 +289,6 @@
 			pinctrl-0 = <&s_twi0_pins_a>;
 			pinctrl-1 = <&s_twi0_pins_b>;
 			status = "okay";
-
-			
 		};
 		
 		/*PWM*/
@@ -355,7 +304,6 @@
                         pinctrl-1 = <&pwm5_pin_b>;
 
 		 };
-
                 
 		/*GPADC*/
 		/*
@@ -401,7 +349,7 @@
 		uart5: uart@05001400 {
 			uart-supply = <&reg_cldo3>;
 			uart5_type = <2>;
-			status = "disabled";
+			status = "okay";
 		};
 
 		wlan:wlan {
@@ -412,11 +360,11 @@
 			wlan_busnum   = <0x1>;
 			wlan_power    = "axp858-dcdc1";
 			wlan_io_regulator = "axp858-cldo2";
-			//wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
-			//wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
+			wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
+			wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
 			chip_en;
 			power_en;
-			status        = "disabled";
+			status        = "okay";
 		};
 
 		bt:bt {
@@ -424,8 +372,8 @@
 			clocks        = <&clk_losc_out>;
 			bt_power      = "axp858-dcdc1";
 			bt_io_regulator = "axp858-cldo2";
-			//bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
-			status        = "disabled";
+			bt_rst_n      = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
+			status        = "okay";
 		};
 
 		btlpm:btlpm {
@@ -527,11 +475,11 @@
 			pa_msleep_time = <0x78>;
 			ramp_func_used = <0x01>;
 			//avcc-supply = <&reg_aldo2>;
-			status = "disabled";
+			status = "okay";
 		};
 
 		spdif:spdif-controller@0x05093000{
-			status = "disabled";
+			status = "okay";
 		};
 
 		dmic:dmic-controller@0x05095000{

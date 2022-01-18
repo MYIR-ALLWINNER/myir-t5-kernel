@@ -42,11 +42,11 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			disp_init_enable         = <1>;
 			disp_mode                = <0>;
 
-			screen0_output_type      = <1>;
+			screen0_output_type      = <1>;// lcd
 			screen0_output_mode      = <4>;
 
-			screen1_output_type      = <3>;
-			screen1_output_mode      = <10>;
+			screen1_output_type      = <3>; //hdmi
+			screen1_output_mode      = <10>;  
 
 			screen1_output_format    = <0>;
 			screen1_output_bits      = <0>;
@@ -58,11 +58,17 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			screen1_output_aspect_ratio = <8>;
 
 			dev0_output_type         = <1>;
-			dev0_output_mode         = <4>;
+			dev0_output_mode         = <4>; //10
 			dev0_screen_id           = <0>;
-			dev0_do_hpd              = <0>;
+			dev0_do_hpd              = <0>;			
+			
+		//	lcd0_bright              = <50>;
+		//	lcd0_contrast            = <50>;
+		//	lcd0_saturation		 = <57>;
+		//	lcd0_hue		 = <50>;
 
-			dev1_output_type         = <4>;
+
+			dev1_output_type         = <4>; //hdmi
 			dev1_output_mode         = <10>;
 			dev1_screen_id           = <1>;
 			dev1_do_hpd              = <1>;
@@ -70,9 +76,9 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			def_output_dev           = <0>;
 			hdmi_mode_check          = <1>;
 
-			fb0_format               = <9>;
-			fb0_width                = <1024>;
-			fb0_height               = <600>;
+			fb0_format               = <0>;
+			fb0_width                = <1920>;
+			fb0_height               = <1080>;
 
 			fb1_format               = <0>;
 			fb1_width                = <0>;
@@ -81,7 +87,7 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 
 			disp_para_zone           = <1>;
 			/* VCC-LCD */
-			dc1sw-supply = <&reg_sw>;
+			//dc1sw-supply = <&reg_sw>;
 			/* VCC-LVDS and VCC-HDMI */
 			bldo1-supply = <&reg_bldo1>;
 			/* VCC-TV */
@@ -108,7 +114,7 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			ddc_en_io_ctrl = <0>;
 			power_io_ctrl = <0>;
 		};
-
+		
 /*----------------------------------------------------------------------------------
 ;lcd0 configuration
 
@@ -139,7 +145,7 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 ;lcd_lvds_if:          0:single link;  1:dual link
 ;lcd_lvds_colordepth:  0:8bit; 1:6bit
 ;lcd_lvds_mode:        0:NS mode; 1:JEIDA mode
-;lcd_frm:              0:disable; 1:enable rgb666 dither; 2:enable rgb656 dither
+;lcd_frm:              0:disable; 1:enable rgb666 dither; 2:enadble rgb656 dither
 ;lcd_io_phase:         0:noraml; 1:intert phase(0~3bit: vsync phase; 4~7bit:hsync phase;
 ;                      8~11bit:dclk phase; 12~15bit:de phase)
 ;lcd_gamma_en          lcd gamma correction enable
@@ -171,29 +177,31 @@ pull up or pull down(default 0), driver level(default 1), data>
 			lcd_used            = <1>;
 
 			lcd_driver_name     = "bp101wx1";
-			lcd_backlight       = <100>;
+			lcd_backlight       = <200>;
 			lcd_if              = <3>;
 
-			lcd_x               = <1024>;
-			lcd_y               = <600>;
+			lcd_x               = <1920>;
+			lcd_y               = <1080>;
 			lcd_width           = <150>;
 			lcd_height          = <94>;
-			lcd_dclk_freq       = <50>;   // <70>
+			lcd_dclk_freq       = <140>;
 
 			lcd_pwm_used        = <1>;
 			lcd_pwm_ch          = <0>;
 			lcd_pwm_freq        = <50000>;
 			lcd_pwm_pol         = <1>;
 			lcd_pwm_max_limit   = <255>;
+			//lcd0_bright              = <50>;
+                        //lcd0_contrast            = <50>;
+                        //lcd0_saturation          = <57>;
+			lcd_hbp             = <120>;
+			lcd_ht              = <2230>;
+			lcd_hspw            = <10>;
+			lcd_vbp             = <20>;
+			lcd_vt              = <1136>;
+			lcd_vspw            = <5>;
 
-			lcd_hbp             = <160>;
-			lcd_ht              = <1324>;
-			lcd_hspw            = <116>;
-			lcd_vbp             = <24>;
-			lcd_vt              = <629>;
-			lcd_vspw            = <3>;
-
-			lcd_lvds_if         = <0>;
+			lcd_lvds_if         = <1>;
 			lcd_lvds_colordepth = <0>;
 			lcd_lvds_mode       = <0>;
 			lcd_frm             = <0>;
@@ -211,81 +219,18 @@ pull up or pull down(default 0), driver level(default 1), data>
 			lcdgamma4iep        = <22>;
 			smart_color         = <90>;
 
-			lcd_pin_power = "bldo1";    
-			                                 
+			lcd_pin_power = "bldo1";
+
 			lcd_power = "dc1sw";
-			lcd_bl_en        = <&pio PD 28 1 0 3 1>;       
-			  
-			//lcd_gpio_0       = <&pio PH 4 1 0 3 1>;
-			
-			pinctrl-0 = <&lvds0_pins_a>;
-			pinctrl-1 = <&lvds0_pins_b>;
+			lcd_gpio_0       = <&pio PH 8 1 0 3 1>;
+			lcd_bl_en        = <&pio PH 9 1 0 3 1>;			
+
+			pinctrl-0 = <&lvds2link_pins_a>;
+			pinctrl-1 = <&lvds2link_pins_b>;
+
 
 		};
-	
-		&pwm0{
-			status = "okay";
-			};
 		
-		/*	
-		&twi3{
-			ctp {
-				compatible = "allwinner,goodix";
-				reg = <0x5d>;
-				device_type = "ctp";
-				status = "okay";
-				ctp_twi_id = <0x3>;
-				ctp_twi_addr = <0x5d>;
-				ctp_screen_max_x = <0x500>;
-				ctp_screen_max_y = <0x320>;
-				ctp_revert_x_flag = <0x0>;
-				ctp_revert_y_flag = <0x0>;
-				ctp_exchange_x_y_flag = <0x0>;
-				ctp_int_port = <&pio PH 8 6 0xffffffff 0xffffffff 0>;
-				ctp_wakeup = <&pio PH 10 1 0xffffffff 0xffffffff 1>;
-				ctp-supply = <&reg_dcdc1>;
-				ctp_power_ldo_vol = <3300>;
-				
-                goodix,cfg-group0 = [
-                        46 00 04 58 02 0A 3D 00 01 08
-                        28 05 50 32 03 05 00 00 00 00
-                        00 00 00 18 1A 1E 14 8D 2D 88
-                        17 15 31 0D 00 00 01 9B 03 1D
-                        00 00 00 00 00 00 00 00 00 00
-                        00 1E 5A 94 C5 02 08 00 00 00
-                        61 21 00 57 29 00 4E 34 00 48
-                        41 00 43 51 00 43 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 01 04 05 06 07 08 09
-                        0C 0D 0E 0F 10 11 14 15 FF FF
-                        FF FF 00 00 00 00 00 00 00 00
-                        00 00 00 02 04 06 07 08 0A 0C
-                        0F 10 11 12 13 19 1B 1C 1E 1F
-                        20 21 22 23 24 25 26 27 FF FF
-                        FF FF FF FF 00 00 00 00 00 00
-                        00 00 00 00 FD 01];
-                goodix,cfg-group3 = [
-                        46 00 04 58 02 0A 3D 00 01 08
-                        28 05 50 32 03 05 00 00 00 00
-                        00 00 00 18 1A 1E 14 8D 2D 88
-                        17 15 31 0D 00 00 01 9B 03 1D
-                        00 00 00 00 00 00 00 00 00 00
-                        00 1E 5A 94 C5 02 08 00 00 00
-                        61 21 00 57 29 00 4E 34 00 48
-                        41 00 43 51 00 43 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 00 00 00 00 00 00 00
-                        00 00 00 01 04 05 06 07 08 09
-                        0C 0D 0E 0F 10 11 14 15 FF FF
-                        FF FF 00 00 00 00 00 00 00 00
-                        00 00 00 02 04 06 07 08 0A 0C
-                        0F 10 11 12 13 19 1B 1C 1E 1F
-                        20 21 22 23 24 25 26 27 FF FF
-                        FF FF FF FF 00 00 00 00 00 00
-                        00 00 00 00 FD 01];
-			};
-		};*/
-
+		&pwm5 {
+                       	status = "okay";
+                };
