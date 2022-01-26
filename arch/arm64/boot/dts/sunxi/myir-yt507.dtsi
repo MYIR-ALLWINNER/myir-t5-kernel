@@ -58,14 +58,15 @@
 	
        pw_en {
                compatible = "pw-en-gpio";
+               gpio0 = <&pio PD 25 1 0xffffffff 0xffffffff 1>;// 4G 3.3V
 /*
-               gpio0 = <&pio PE 11 1 0xffffffff 0xffffffff 1>;// 5v 3.3V
                gpio1 = <&pio PE 3 1 0xffffffff 0xffffffff 1>; //USB 5V
                gpio2 = <&pio PE 16 1 0xffffffff 0xffffffff 1>;// hub reset
                gpio3 = <&pio PE 10 1 0xffffffff 0xffffffff 1>;// fan
                gpio8 = <&pio PE 9 1 0xffffffff 0xffffffff 0>;// otg mode
                gpio9 = <&pio PE 2 1 0xffffffff 0xffffffff 0>;// otg pwr
-	       pinctrl-0 = <&pwr_pins>;
+	
+  	       pinctrl-0 = <&pwr_pins>;
 */
                status = "okay";
        };       
@@ -124,7 +125,7 @@
 			non-removable;
 			bus-width = <8>;
 			mmc-ddr-1_8v;
-		//	mmc-hs200-1_8v;
+			mmc-hs200-1_8v;
 			mmc-hs400-1_8v;
 			no-sdio;
 			no-sd;
@@ -132,7 +133,7 @@
 			sunxi-power-save-mode;
 			sunxi-dis-signal-vol-sw;
 			max-frequency = <100000000>;
-		//	ctl-spec-caps = <0x308>;
+			ctl-spec-caps = <0x308>;
 			vmmc-supply = <&reg_aldo1>;
 			vqmmc-supply = <&reg_dcdc1>;
 			status = "okay";
@@ -196,12 +197,12 @@
 			use_ephy25m = <1>;
 			tx-delay = <1>;
 			rx-delay = <24>;
-			//gmac-power0-supply = <&reg_cldo3>;
-			//gmac-power1-supply;
-			//gmac-power2-supply;
-			//gmac-power0-vol = <3300000>;
-			//gmac-power1-vol;
-			//gmac-power2-vol;
+			gmac-power0-supply = <&reg_cldo3>;
+			gmac-power1-supply;
+			gmac-power2-supply;
+			gmac-power0-vol = <3300000>;
+			gmac-power1-vol;
+			gmac-power2-vol;
 			status = "okay";
 		};
 
@@ -354,9 +355,9 @@
 
 		wlan:wlan {
 			compatible    = "allwinner,sunxi-wlan";
-			clocks        = <&clk_losc_out>;
-			pinctrl-0     = <&clk_losc_pins_a>;
-			pinctrl-names = "default";
+			//clocks        = <&clk_losc_out>;
+			//pinctrl-0     = <&clk_losc_pins_a>;
+			//pinctrl-names = "default";
 			wlan_busnum   = <0x1>;
 			wlan_power    = "axp858-dcdc1";
 			wlan_io_regulator = "axp858-cldo2";
@@ -898,9 +899,9 @@ vinc(x)_sensor_list: use sensor list
 			reg_dcdc1: dcdc1 {
 				regulator-name = "axp858-dcdc1";
 				regulator-min-microvolt = <1500000>;
-				regulator-max-microvolt = <2700000>;//34
-				//regulator-step-delay-us = <25>;
-				//regulator-final-delay-us = <50>;
+				regulator-max-microvolt = <3400000>;//34
+				regulator-step-delay-us = <25>;
+				regulator-final-delay-us = <50>;
 				regulator-boot-on;
 				regulator-always-on;
 			};

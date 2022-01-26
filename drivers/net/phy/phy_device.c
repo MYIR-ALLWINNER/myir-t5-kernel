@@ -532,7 +532,7 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
 	/* If the phy_id is mostly Fs, there is no device there */
 	if ((phy_id & 0x1fffffff) == 0x1fffffff)
 		return ERR_PTR(-ENODEV);
-
+#if 0
 	printk (KERN_INFO "yzhang..read phyaddr=%d, phyid=%08x\n",addr, phy_id);
 	if(0x10a == phy_id)
 	{
@@ -554,6 +554,7 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
 		}
 #endif
 	}
+#endif
 
 	return phy_device_create(bus, addr, phy_id, is_c45, &c45_ids);
 }

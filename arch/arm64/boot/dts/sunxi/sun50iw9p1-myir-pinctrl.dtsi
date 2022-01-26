@@ -479,7 +479,7 @@
 
 			
 			spdif_pins_a: spdif@0 {
-				allwinner,pins = "PH2", "PH3", "PH4";
+				allwinner,pins = "PH4";//SPDIF OUT
 				allwinner,function = "spdif";
 				allwinner,muxsel = <3>;
 				allwinner,drive = <1>;
@@ -497,7 +497,7 @@
 		*/
 
 			spdif_pins_b: spdif_sleep@0 {
-				allwinner,pins = "PH2", "PH3", "PH4";
+				allwinner,pins = "PH4";
 				allwinner,function = "io_disabled";
 				allwinner,muxsel = <7>;
 				allwinner,drive = <1>;
