@@ -54,6 +54,15 @@
                 enable-active-high;
         };
 
+	 reg_vdd_3v3: vdd_3v3 {
+                compatible = "regulator-fixed";
+                regulator-name = "vdd-3v3";
+                regulator-min-microvolt = <3300000>;
+                regulator-max-microvolt = <3300000>;
+                enable-active-high;
+        };
+
+
 
 	
        pw_en {
@@ -195,9 +204,9 @@
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
 			use_ephy25m = <1>;
-			tx-delay = <1>;
+			tx-delay = <2>;
 			rx-delay = <24>;
-			gmac-power0-supply = <&reg_cldo3>;
+			gmac-power0-supply = <&reg_dcdc6>;
 			gmac-power1-supply;
 			gmac-power2-supply;
 			gmac-power0-vol = <3300000>;
@@ -213,7 +222,7 @@
 			use_ephy25m = <0>;
 			tx-delay = <7>;
 			rx-delay = <0>;
-			gmac-power0-supply = <&reg_cldo3>;
+			gmac-power0-supply = <&reg_dcdc6>;
 			gmac-power1-supply;
 			gmac-power2-supply;
 			gmac-power0-vol = <3300000>;

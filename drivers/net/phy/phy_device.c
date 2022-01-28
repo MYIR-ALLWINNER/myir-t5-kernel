@@ -554,6 +554,7 @@ struct phy_device *get_phy_device(struct mii_bus *bus, int addr, bool is_c45)
 		}
 #endif
 	}
+
 #endif
 
 	return phy_device_create(bus, addr, phy_id, is_c45, &c45_ids);

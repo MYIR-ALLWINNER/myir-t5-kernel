@@ -180,7 +180,7 @@ pull up or pull down(default 0), driver level(default 1), data>
 		&lcd0 {
 			lcd_used            = <1>;
 
-			lcd_driver_name     = "bp101wx1";
+			lcd_driver_name     = "default_lcd";//bp101wx1
 			lcd_backlight       = <200>;
 			lcd_if              = <3>;
 
@@ -239,6 +239,23 @@ pull up or pull down(default 0), driver level(default 1), data>
 		
 			
 		&twi4 {
+			status = "okay";
+			ctp {
+                                device_type = "ctp";
+                                status = "okay";
+                                ctp_twi_id = <0x4>;
+                                ctp_twi_addr = <0x38>;
+                                ctp_screen_max_x = <0x400>;
+                                ctp_screen_max_y = <0x258>;
+                                ctp_revert_x_flag = <0x0>;
+                                ctp_revert_y_flag = <0x0>;
+                                ctp_exchange_x_y_flag = <0x0>;
+                                ctp_int_port = <&pio PD 24 6 0xffffffff 0xffffffff 0>;
+                                ctp_wakeup = <&pio PD 27 1 0xffffffff 0xffffffff 1>;
+                                ctp-supply = <&reg_vdd_3v3>;
+                                ctp_power_ldo_vol = <3300>;
+                        };
+			/*
 			edt-ft5x06@38 {
                         	compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
                         	reg = <0x38>;
@@ -248,4 +265,5 @@ pull up or pull down(default 0), driver level(default 1), data>
                         	reset-gpios = <&pio PD 27 1 0xffffffff 0xffffffff 1>;
                 	        status = "okay";
                 	};
+			*/
 	};
