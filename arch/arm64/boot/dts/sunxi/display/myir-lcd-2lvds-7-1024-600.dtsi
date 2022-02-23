@@ -317,10 +317,9 @@ pull up or pull down(default 0), driver level(default 1), data>
 
 
 		};
-			
 		&twi3 {
 			status= "okay";
-		/*	
+			
 			edt-ft5x06@38 {
                                 compatible = "edt,edt-ft5306", "edt,edt-ft5x06";
                                 reg = <0x38>;
@@ -330,10 +329,11 @@ pull up or pull down(default 0), driver level(default 1), data>
                                 reset-gpios = <&pio PD 23 1 0xffffffff 0xffffffff 1>;
                                 status = "okay";
                         };
-		*/	
+		
+		/*	
 			ctp {
                         	device_type = "ctp";
-                        	status = "okay";
+                        	status = "disabled";
                         	ctp_twi_id = <0x3>;
                         	ctp_twi_addr = <0x38>;
                         	ctp_screen_max_x = <0x400>;
@@ -343,9 +343,8 @@ pull up or pull down(default 0), driver level(default 1), data>
                         	ctp_exchange_x_y_flag = <0x0>;
                         	ctp_int_port = <&pio PD 20 6 0xffffffff 0xffffffff 0>;
                         	ctp_wakeup = <&pio PD 23 1 0xffffffff 0xffffffff 1>;
-                        	ctp-supply = <reg_vdd_3v3>;
+                        	ctp-supply = <&reg_vdd_3v3>;
                        		ctp_power_ldo_vol = <3300>;
                         };
+*/
 		};
-		
-		
