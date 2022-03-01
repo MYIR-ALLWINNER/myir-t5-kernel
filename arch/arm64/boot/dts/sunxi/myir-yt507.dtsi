@@ -9,10 +9,10 @@
 #include "sun50iw9p1-myir.dtsi"
 
 /*display*/
-//#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
+#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
 //#include "display/myir-lcd-1lvds-7-1024-600.dtsi"
 //#include "display/myir-lcd-lvds-10.1-1280-800.dtsi" 
-#include "display/myir-lcd-2lvds-7-1024-600.dtsi"
+//#include "display/myir-lcd-2lvds-7-1024-600.dtsi"
 //#include "display/myir-lcd-2lvds-21-1920-1080.dtsi"
 //#include "display/myir-hdmi.dtsi"
 //#include "display/myir-tv.dtsi"
@@ -144,23 +144,23 @@
 				spi-tx-bus-width = <0x1>;
 			};
 		};
-
+		/*emmc*/
 		sdc2: sdmmc@04022000 {
 		//	pinctrl-0 = <&sdc2_pins_a &sdc2_pins_c>;
 			non-removable;
 			bus-width = <8>;
 			mmc-ddr-1_8v;
 			mmc-hs200-1_8v;
-			mmc-hs400-1_8v;
+			//mmc-hs400-1_8v;
 			no-sdio;
 			no-sd;
 			cap-mmc-highspeed;
 			sunxi-power-save-mode;
 			sunxi-dis-signal-vol-sw;
 			max-frequency = <100000000>;
-			ctl-spec-caps = <0x308>;
-			vmmc-supply = <&reg_aldo1>;
-			vqmmc-supply = <&reg_dcdc1>;
+			ctl-spec-caps = <0x8>;
+			vqmmc-supply = <&reg_aldo1>;
+			vmmc-supply = <&reg_dcdc1>;
 			status = "okay";
 		};
 
@@ -501,11 +501,11 @@
 			pa_msleep_time = <0x78>;
 			ramp_func_used = <0x01>;
 			//avcc-supply = <&reg_aldo2>;
-			status = "disabled";
+			status = "okay";
 		};
 
 		spdif:spdif-controller@0x05093000{
-			status = "disabled";
+			status = "okay";
 		};
 
 		dmic:dmic-controller@0x05095000{
@@ -596,7 +596,7 @@
 		};
 
 		sndspdif:sound@4{
-			status = "disabled";
+			status = "okay";
 		};
 
 		snddmic:sound@5{
@@ -692,7 +692,7 @@ vinc(x)_sensor_list: use sensor list
 				sensor0_mname = "ov5640_mipi";
 				sensor0_twi_cci_id = <0>;
 				sensor0_twi_addr = <0x78>;
-				sensor0_mclk_id = <0>;
+				sensor0_mclk_id = <1>;
 				sensor0_pos = "rear";
 				sensor0_isp_used = <0>;
 				sensor0_fmt = <0>;
@@ -1050,8 +1050,7 @@ vinc(x)_sensor_list: use sensor list
 			reg_bldo4: bldo4 {
 				regulator-name = "axp858-bldo4";
 				regulator-min-microvolt = <700000>;
-//				regulator-max-microvolt = <3300000>;
-				regulator-max-microvolt = <1800000>;
+				regulator-max-microvolt = <3300000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;
@@ -1077,8 +1076,7 @@ vinc(x)_sensor_list: use sensor list
 			reg_cldo2: cldo2 {
 				regulator-name = "axp858-cldo2";
 				regulator-min-microvolt = <700000>;
-//				regulator-max-microvolt = <3300000>;
-				regulator-max-microvolt = <1800000>;
+				regulator-max-microvolt = <3300000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;
@@ -1086,7 +1084,7 @@ vinc(x)_sensor_list: use sensor list
 
 			reg_cldo3: cldo3 {
 				regulator-name = "axp858-cldo3";
-				regulator-min-microvolt = <1700000>;//700000
+				regulator-min-microvolt = <700000>;//700000
 				regulator-max-microvolt = <3300000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
@@ -1094,8 +1092,8 @@ vinc(x)_sensor_list: use sensor list
 
 			reg_cldo4: cldo4 {
 				regulator-name = "axp858-cldo4";
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <1800000>;
+				regulator-min-microvolt = <700000>;
+				regulator-max-microvolt = <4200000>;
 				regulator-step-delay-us = <25>;
 				regulator-final-delay-us = <50>;
 				regulator-always-on;
@@ -1224,15 +1222,11 @@ vinc(x)_sensor_list: use sensor list
 	};
 };
 
+/*why*/
 &cpu0 {
 	cpu-supply = <&reg_dcdc2>;
 };
 
-/*
-&csi1 {
-	status = "disabled";
-};
-*/
 &gpadc {
         channel_num = <4>;
         channel_select = <0xf>;
