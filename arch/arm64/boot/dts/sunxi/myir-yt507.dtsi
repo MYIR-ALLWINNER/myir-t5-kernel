@@ -61,22 +61,14 @@
                 regulator-max-microvolt = <3300000>;
                 enable-active-high;
         };
+	
 
 
 
 	
        pw_en {
                compatible = "pw-en-gpio";
-               gpio0 = <&pio PD 25 1 0xffffffff 0xffffffff 1>;// 4G 3.3V
-/*
-               gpio1 = <&pio PE 3 1 0xffffffff 0xffffffff 1>; //USB 5V
-               gpio2 = <&pio PE 16 1 0xffffffff 0xffffffff 1>;// hub reset
-               gpio3 = <&pio PE 10 1 0xffffffff 0xffffffff 1>;// fan
-               gpio8 = <&pio PE 9 1 0xffffffff 0xffffffff 0>;// otg mode
-               gpio9 = <&pio PE 2 1 0xffffffff 0xffffffff 0>;// otg pwr
-	
-  	       pinctrl-0 = <&pwr_pins>;
-*/
+               gpio0 = <&pio PD 25 1 0xffffffff 0xffffffff 0>;// 4G 3.3V
                status = "okay";
        };       
        
@@ -210,7 +202,7 @@
 			cap-sdio-irq;
 			keep-power-in-suspend;
 			ignore-pm-notify;
-			max-frequency = <50000000>;
+			max-frequency = <45000000>;
 			ctl-spec-caps = <0x8>;
 			status = "okay";
 		};
@@ -225,7 +217,7 @@
 			gmac-power0-supply = <&reg_dcdc6>;
 			gmac-power1-supply;
 			gmac-power2-supply;
-			gmac-power0-vol = <3300000>;
+			gmac-power0-vol = <2800000>;
 			gmac-power1-vol;
 			gmac-power2-vol;
 			status = "okay";
@@ -241,7 +233,7 @@
 			gmac-power0-supply = <&reg_dcdc6>;
 			gmac-power1-supply;
 			gmac-power2-supply;
-			gmac-power0-vol = <3300000>;
+			gmac-power0-vol = <2800000>;
 			gmac-power1-vol;
 			gmac-power2-vol;
 			status = "okay";
@@ -692,7 +684,7 @@ vinc(x)_sensor_list: use sensor list
 				sensor0_mname = "ov5640_mipi";
 				sensor0_twi_cci_id = <0>;
 				sensor0_twi_addr = <0x78>;
-				sensor0_mclk_id = <1>;
+				sensor0_mclk_id = <0>;
 				sensor0_pos = "rear";
 				sensor0_isp_used = <0>;
 				sensor0_fmt = <0>;
@@ -878,7 +870,7 @@ vinc(x)_sensor_list: use sensor list
 
 &cpu_trips{
 	cpu_crit: cpu_crit@0 {
-		temperature = <120000>;
+		temperature = <125000>;
 		type = "critical";
 		hysteresis = <0>;
 	};

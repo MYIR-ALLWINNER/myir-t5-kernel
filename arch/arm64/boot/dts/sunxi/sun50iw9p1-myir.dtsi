@@ -83,7 +83,8 @@
 			reg = <0x0 0x0>;
 			enable-method = "psci";
 			clocks = <&clk_pll_cpu>;
-			operating-points-v2 = <&cpu_opp_l_table>;
+			//operating-points-v2 = <&cpu_opp_l_table>;
+			clock-frequency = <1008000000>;
 			cpu-idle-states = <&CPU_SLEEP_0>;
 			dynamic-power-coefficient = <100>;
 			#cooling-cells = <2>;
@@ -95,7 +96,8 @@
 			reg = <0x0 0x1>;
 			enable-method = "psci";
 			clocks = <&clk_pll_cpu>;
-			operating-points-v2 = <&cpu_opp_l_table>;
+			clock-frequency = <1008000000>;
+			//operating-points-v2 = <&cpu_opp_l_table>;
 			cpu-idle-states = <&CPU_SLEEP_0>;
 			#cooling-cells = <2>;
 		};
@@ -106,7 +108,8 @@
 			reg = <0x0 0x2>;
 			enable-method = "psci";
 			clocks = <&clk_pll_cpu>;
-			operating-points-v2 = <&cpu_opp_l_table>;
+			clock-frequency = <1008000000>;
+			//operating-points-v2 = <&cpu_opp_l_table>;
 			cpu-idle-states = <&CPU_SLEEP_0>;
 			#cooling-cells = <2>;
 		};
@@ -117,6 +120,7 @@
 			reg = <0x0 0x3>;
 			enable-method = "psci";
 			clocks = <&clk_pll_cpu>;
+			//clock-frequency = <1008000000>;
 			operating-points-v2 = <&cpu_opp_l_table>;
 			cpu-idle-states = <&CPU_SLEEP_0>;
 			#cooling-cells = <2>;
