@@ -160,7 +160,7 @@ static ssize_t sys_info_show(struct class *class,
 
 	/* socbatch number */
 	size += sprintf(buf + size, "sunxi_batchno     : %#x\n",
-			sunxi_get_soc_ver()&0x0ffff);
+			sunxi_get_soc_ver());
 
 	return size;
 }

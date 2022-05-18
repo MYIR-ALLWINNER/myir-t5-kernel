@@ -14,8 +14,11 @@
 #include <linux/platform_device.h>
 #include <linux/pm_opp.h>
 #include <linux/slab.h>
+#include <linux/sunxi-sid.h>
 
 #define MAX_NAME_LEN    3
+
+#define SUN50IW9_ICPU_MASK     GENMASK(9, 0)
 
 static struct platform_device *cpufreq_dt_pdev, *sun50i_cpufreq_pdev;
 
@@ -87,11 +90,11 @@ static void sun50iw9_icpu_xlate(char *prop_name, char *name, u32 i_data)
 {
 	int value = 0;
 
+	i_data &= SUN50IW9_ICPU_MASK;
+
 	if ((i_data >= 0) && (i_data < 93))
 		value = 0;
-	/*
-	 * 150 is temp munber
-	 */
+	/* 150 is temp munber */
 	else if ((i_data >= 93) && (i_data < 150))
 		value = 1;
 	else if ((i_data >= 150) && (i_data < 271))
@@ -102,14 +105,20 @@ static void sun50iw9_icpu_xlate(char *prop_name, char *name, u32 i_data)
 
 static void sun50iw9_nvmem_xlate(u32 *versions, char *name)
 {
+	unsigned int ver_bits = sunxi_get_soc_ver() & 0x7;
+
 	switch (ver_data.nv_speed) {
 	case 0x2400:
 	case 0x7400:
-		sun50iw9_icpu_xlate("a", name, ver_data.nv_Icpu);
-		break;
 	case 0x2c00:
 	case 0x7c00:
-		sun50iw9_icpu_xlate("b", name, ver_data.nv_Icpu);
+		if (ver_bits == 0) {
+			/* ic version A/B */
+			sun50iw9_icpu_xlate("a", name, ver_data.nv_Icpu);
+		} else {
+			/* ic version C and later version */
+			sun50iw9_icpu_xlate("b", name, 0);
+		}
 		break;
 	case 0x5000:
 	case 0x5400:

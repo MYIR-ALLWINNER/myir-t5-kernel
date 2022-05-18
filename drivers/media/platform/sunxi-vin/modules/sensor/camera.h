@@ -71,6 +71,11 @@ struct sensor_format_struct {
 	int bpp; /* Bytes per pixel */
 };
 
+struct sensor_tvin {
+	bool flag;
+	struct tvin_init_info tvin_info;
+};
+
 struct sensor_info {
 	struct v4l2_subdev sd;
 	struct media_pad sensor_pads[SENSOR_PAD_NUM];
@@ -116,6 +121,7 @@ struct sensor_info {
 	unsigned int lane_num;
 	unsigned int bit_width;
 	struct v4l2_ctrl_handler handler;
+	struct sensor_tvin tvin;
 };
 
 #endif /*__CAMERA__H__*/

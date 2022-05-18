@@ -206,9 +206,12 @@
 
 #define NORMAL_WAIT	(8 << 0)
 
-#define SET_DST_HIGH_ADDR(x) (((x >> 31) & 0x3UL) << 18)
-#define SET_SRC_HIGH_ADDR(x) (((x >> 31) & 0x3UL) << 16)
+#define BMODE_SEL	(0x01 << 30)
+#define SET_DST_HIGH_ADDR(x) (((x >> 32) & 0x3UL) << 18)
+#define SET_SRC_HIGH_ADDR(x) (((x >> 32) & 0x3UL) << 16)
 #define SET_DESC_HIGH_ADDR(x) (((x >> 32) & 0x3UL) | (x & 0xFFFFFFFC))
+#define SYSCFG_VER	0x03000024
+#define SYS_VER_MASK	(0x07 << 0)
 /*
  * struct sunxi_dma_lli - linked list ltem, the DMA block descriptor
  * @cfg:	DMA configuration
@@ -268,6 +271,7 @@ struct sunxi_chan {
 
 static u64 sunxi_dma_mask = DMA_BIT_MASK(64);
 static u32 sunxi_dma_channel_bitmap;
+static u32 syscfg_version;
 
 static inline struct sunxi_dmadev *to_sunxi_dmadev(struct dma_device *d)
 {
@@ -414,8 +418,7 @@ static inline void sunxi_dump_com_regs(struct sunxi_chan *ch)
 
 	sdev = to_sunxi_dmadev(ch->vc.chan.device);
 
-	//pr_debug("Common register:\n"
-	printk("#### Common register:\n"
+	pr_debug("Common register:\n"
 			"\tmask0(%04x): 0x%08x\n"
 			"\tmask1(%04x): 0x%08x\n"
 			"\tpend0(%04x): 0x%08x\n"
@@ -445,8 +448,7 @@ static inline void sunxi_dump_chan_regs(struct sunxi_chan *ch)
 	struct sunxi_dmadev *sdev = to_sunxi_dmadev(ch->vc.chan.device);
 	u32 chan_num = ch->vc.chan.chan_id;
 
-	//pr_debug("Chan %d reg:\n"
-	printk("#### Chan %d reg:\n"
+	pr_debug("Chan %d reg:\n"
 			"\t___en(%04x): \t0x%08x\n"
 			"\tpause(%04x): \t0x%08x\n"
 			"\tstart(%04x): \t0x%08x\n"
@@ -586,7 +588,6 @@ static void sunxi_start_desc(struct sunxi_chan *ch)
 	/* Set the DMA opertions mode */
 	SET_OP_MODE(sdev, chan_num, SRC_HS_MASK | DST_HS_MASK);
 
-	printk("#### %s chan start\n", __func__);
 	/* write the first lli address to register, and start to transfer */
 	writel(txd->lli_phys, sdev->base + DMA_LLI_ADDR(chan_num));
 	writel(CHAN_START, sdev->base + DMA_ENABLE(chan_num));
@@ -736,8 +737,6 @@ static irqreturn_t sunxi_dma_interrupt(int irq, void *dev_id)
 	dev_dbg(sdev->dma_dev.dev,
 		"[sunxi_dma]: DMA irq status_lo: 0x%08x, status_hi: 0x%08x\n",
 		status_lo, status_hi);
-	//printk("##### [sunxi_dma]: DMA irq status_lo: 0x%08x, status_hi: 0x%08x\n",
-	//	status_lo, status_hi);
 
 	/* Clear the bit of irq status */
 	writel(status_lo, sdev->base + DMA_IRQ_STAT(0));
@@ -1008,10 +1007,18 @@ struct dma_async_tx_descriptor *sunxi_prep_dma_cyclic(struct dma_chan *chan,
 			sunxi_cfg_lli(l_item, sconfig->src_addr,
 					(buf_addr + period_len * i),
 					period_len, sconfig);
-			l_item->cfg |= GET_SRC_DRQ(sconfig->slave_id)
-					| DST_LINEAR_MODE
-					| SRC_IO_MODE
-					| DST_DRQ(DRQDST_SDRAM);
+			if (schan->vc.chan.private && syscfg_version) {
+				l_item->cfg |= GET_SRC_DRQ(sconfig->slave_id)
+						| DST_LINEAR_MODE
+						| SRC_IO_MODE
+						| DST_DRQ(DRQDST_SDRAM)
+						| BMODE_SEL;
+			} else {
+				l_item->cfg |= GET_SRC_DRQ(sconfig->slave_id)
+						| DST_LINEAR_MODE
+						| SRC_IO_MODE
+						| DST_DRQ(DRQDST_SDRAM);
+			}
 		} else if (dir == DMA_DEV_TO_DEV) {
 			sunxi_cfg_lli(l_item, sconfig->src_addr,
 					sconfig->dst_addr, period_len,
@@ -1208,7 +1215,6 @@ static int sunxi_probe(struct platform_device *pdev)
 		goto irq_err;
 	}
 
-	printk("&&&&& %s, irq = %d\n", __func__, irq);
 	ret = request_irq(irq, sunxi_dma_interrupt, IRQF_SHARED,
 			dev_name(&pdev->dev), sunxi_dev);
 	if (ret) {
@@ -1282,6 +1288,14 @@ static int sunxi_probe(struct platform_device *pdev)
 	clk_prepare_enable(sunxi_dev->ahb_clk);
 	/* init hw dma */
 	sunxi_dma_hw_init(sunxi_dev);
+
+	/*
+	 * Determine whether to support the BMODE Mode according to
+	 * SYSCFG Version Register from bit[2:0] for IC version,if support
+	 * this mode and it will be read as 0x2
+	 */
+	syscfg_version = readl((void __iomem *)ioremap(SYSCFG_VER, 4));
+	syscfg_version &= SYS_VER_MASK;
 
 	return 0;
 

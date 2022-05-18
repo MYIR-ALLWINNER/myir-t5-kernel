@@ -138,37 +138,37 @@
 
 	cpu_opp_l_table: opp_l_table {
 		compatible = "allwinner,sun50i-operating-points";
-		nvmem-cells = <&speedbin_efuse>,<&Icpu_efuse>;
+		nvmem-cells = <&speedbin_efuse>, <&Icpu_efuse>;
 		nvmem-cell-names = "speed","Icpu";
 		opp-shared;
 
 		opp@480000000-0 {
 			opp-hz = /bits/ 64 <480000000>;
-			opp-microvolt = <820000>;
+			opp-microvolt = <900000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
 			opp-supported-hw = <0x1>;
 		};
 		opp@480000000-1 {
 			opp-hz = /bits/ 64 <480000000>;
-			opp-microvolt = <880000>;
+			opp-microvolt = <900000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
 			opp-supported-hw = <0x2>;
 		};
 		opp@600000000-0 {
 			opp-hz = /bits/ 64 <600000000>;
-			opp-microvolt = <820000>;
+			opp-microvolt = <900000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
 			opp-supported-hw = <0x1>;
 		};
 		opp@600000000-1 {
 			opp-hz = /bits/ 64 <600000000>;
-			opp-microvolt = <880000>;
+			opp-microvolt = <900000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
 			opp-supported-hw = <0x2>;
 		};
 		opp@792000000-0 {
 			opp-hz = /bits/ 64 <792000000>;
-			opp-microvolt = <860000>;
+			opp-microvolt = <900000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
 			opp-supported-hw = <0x1>;
 		};
@@ -218,35 +218,35 @@
 		opp@480000000-ab {
 			opp-hz = /bits/ 64 <480000000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
-			opp-microvolt-a0 = <880000>;
-			opp-microvolt-a1 = <820000>;
-			opp-microvolt-a2 = <820000>;
+			opp-microvolt-a0 = <900000>;
+			opp-microvolt-a1 = <900000>;
+			opp-microvolt-a2 = <900000>;
 
-			opp-microvolt-b0 = <880000>;
-			opp-microvolt-b1 = <820000>;
-			opp-microvolt-b2 = <820000>;
+			opp-microvolt-b0 = <900000>;
 		};
 		opp@600000000-ab {
 			opp-hz = /bits/ 64 <600000000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
-			opp-microvolt-a0 = <880000>;
-			opp-microvolt-a1 = <820000>;
-			opp-microvolt-a2 = <820000>;
-
-			opp-microvolt-b0 = <880000>;
-			opp-microvolt-b1 = <820000>;
-			opp-microvolt-b2 = <820000>;
+			opp-microvolt-a0 = <900000>;
+			opp-microvolt-a1 = <900000>;
+			opp-microvolt-a2 = <900000>;
+		};
+		opp@720000000-ab {
+			opp-hz = /bits/ 64 <720000000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+			opp-microvolt-b0 = <900000>;
 		};
 		opp@792000000-ab {
 			opp-hz = /bits/ 64 <792000000>;
 			clock-latency-ns = <244144>; /* 8 32k periods */
-			opp-microvolt-a0 = <880000>;
-			opp-microvolt-a1 = <860000>;
-			opp-microvolt-a2 = <860000>;
-
-			opp-microvolt-b0 = <880000>;
-			opp-microvolt-b1 = <860000>;
-			opp-microvolt-b2 = <860000>;
+			opp-microvolt-a0 = <900000>;
+			opp-microvolt-a1 = <900000>;
+			opp-microvolt-a2 = <900000>;
+		};
+		opp@936000000-ab {
+			opp-hz = /bits/ 64 <936000000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+			opp-microvolt-b0 = <900000>;
 		};
 		opp@1008000000-ab {
 			opp-hz = /bits/ 64 <1008000000>;
@@ -255,9 +255,12 @@
 			opp-microvolt-a1 = <900000>;
 			opp-microvolt-a2 = <900000>;
 
-			opp-microvolt-b0 = <940000>;
-			opp-microvolt-b1 = <900000>;
-			opp-microvolt-b2 = <900000>;
+			opp-microvolt-b0 = <950000>;
+		};
+		opp@1104000000-ab {
+			opp-hz = /bits/ 64 <1104000000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+			opp-microvolt-b0 = <1000000>;
 		};
 		opp@1200000000-ab {
 			opp-hz = /bits/ 64 <1200000000>;
@@ -266,9 +269,17 @@
 			opp-microvolt-a1 = <960000>;
 			opp-microvolt-a2 = <960000>;
 
-			opp-microvolt-b0 = <1020000>;
-			opp-microvolt-b1 = <960000>;
-			opp-microvolt-b2 = <960000>;
+			opp-microvolt-b0 = <1050000>;
+		};
+		opp@1320000000-ab {
+			opp-hz = /bits/ 64 <1320000000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+			opp-microvolt-b0 = <1100000>;
+		};
+		opp@1416000000-ab {
+			opp-hz = /bits/ 64 <1416000000>;
+			clock-latency-ns = <244144>; /* 8 32k periods */
+			opp-microvolt-b0 = <1150000>;
 		};
 		opp@1512000000-ab {
 			opp-hz = /bits/ 64 <1512000000>;
@@ -429,7 +440,7 @@
 		reg = <0x0 0x03006000 0 0x1000>;
 	};
 
-	sunxi-sid-ng@03006000 {
+	sunxi_sid:sunxi-sid-ng@03006000 {
 		compatible = "allwinner,sun50iw9p1-sid";
 		reg = <0x0 0x03006000 0 0x1000>;
 		#address-cells = <1>;
@@ -444,8 +455,7 @@
 		};
 
 		Icpu_efuse: Icpu@28 {
-			reg = <0x28 1>;
-			bits = <0 10>;
+			reg = <0x28 2>;
 		};
 	};
 
@@ -700,7 +710,7 @@
 			pinctrl-0 = <&uart2_pins_a>;
 			pinctrl-1 = <&uart2_pins_b>;
 			uart2_port = <2>;
-			uart2_type = <2>;
+			uart2_type = <4>;
 			status = "disabled";
 		};
 
@@ -741,21 +751,6 @@
 			pinctrl-1 = <&uart5_pins_b>;
 			uart5_port = <5>;
 			uart5_type = <2>;
-			status = "okay";
-		};
-
-		twi5: twi@0x07081400{
-			#address-cells = <1>;
-			#size-cells = <0>;
-			compatible = "allwinner,sun50i-twi";
-			device_type = "twi5";
-			reg = <0x0 0x07081400 0x0 0x400>;
-			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_stwi>;
-			clock-frequency = <200000>;
-			pinctrl-names = "default", "sleep";
-			pinctrl-0 = <&s_twi0_pins_a>;
-			pinctrl-1 = <&s_twi0_pins_b>;
 			status = "okay";
 		};
 
@@ -1062,14 +1057,13 @@
 			compatible = "allwinner,sunxi-ahub-cpudai";
 			reg = <0x0 0x05097000 0x0 0xADF>;
 			id = <0x3>;
-			status = "disabled";
+			status = "okay";
 		};
 
 		ahub_codec:ahub_codec@0x05097000{
 			compatible = "allwinner,sunxi-ahub";
 			reg = <0x0 0x05097000 0x0 0xADF>;
 			clocks = <&clk_pll_audio>,<&clk_pll_audiox4>,<&clk_ahub>;
-			interrupts = <GIC_SPI 24 IRQ_TYPE_LEVEL_HIGH>;
 			status = "okay";
 		};
 
@@ -1091,19 +1085,19 @@
 			clocks = <&clk_pll_audio>,<&clk_pll_audiox4>,<&clk_ahub>;
 			tdm_num = <0x01>;
 			device_type = "ahub_daudio1";
-			status = "disabled";
+			status = "okay";
 		};
 
 		ahub_daudio2:ahub_daudio2@0x05097000{
 			compatible = "allwinner,sunxi-ahub-daudio";
 			reg = <0x0 0x05097000 0x0 0xADF>;
 			clocks = <&clk_pll_audio>,<&clk_pll_audiox4>,<&clk_ahub>;
-			//pinctrl-names = "default","sleep";
-			//pinctrl-0 = <&ahub_daudio2_pins_a>;
-			//pinctrl-1 = <&ahub_daudio2_pins_b>;
+			pinctrl-names = "default","sleep";
+			pinctrl-0 = <&ahub_daudio2_pins_a>;
+			pinctrl-1 = <&ahub_daudio2_pins_b>;
 			tdm_num = <0x02>;
 			device_type = "ahub_daudio2";
-			status = "okay";
+			status = "disabled";
 		};
 
 		ahub_daudio3:ahub_daudio3@0x05097000{
@@ -1129,7 +1123,7 @@
 			compatible = "allwinner,sunxi-hdmi-machine";
 			sunxi,cpudai-controller = <&ahub_daudio1>;
 			device_type = "sndhdmi";
-			status = "disabled";
+			status = "okay";
 		};
 
 		snddaudio2:sound@2{
@@ -1678,6 +1672,8 @@
 				sensor0_hflip = <0>;
 				sensor0_cameravdd-supply = <>;
 				sensor0_cameravdd_vol = <2800000>;
+				sensor0_reservevdd-supply = <>;
+				sensor0_reservevdd_vol = <2800000>;
 				sensor0_iovdd-supply = <>;
 				sensor0_iovdd_vol = <2800000>;
 				sensor0_avdd-supply = <>;
@@ -1686,7 +1682,7 @@
 				sensor0_dvdd_vol = <1500000>;
 				sensor0_power_en = <>;
 				sensor0_reset = <&pio PE 14 1 0 1 0>;
-//				sensor0_pwdn = <&pio PE 16 1 0 1 0>;
+				sensor0_pwdn = <&pio PE 16 1 0 1 0>;
 				sensor0_sm_vs = <>;
 				flash_handle = <&flash0>;
 				act_handle = <&actuator0>;
@@ -1708,6 +1704,8 @@
 				sensor1_hflip = <0>;
 				sensor1_cameravdd-supply = <>;
 				sensor1_cameravdd_vol = <2800000>;
+				sensor1_reservevdd-supply = <>;
+				sensor1_reservevdd_vol = <2800000>;
 				sensor1_iovdd-supply = <>;
 				sensor1_iovdd_vol = <2800000>;
 				sensor1_avdd-supply = <>;
@@ -1922,6 +1920,8 @@
 			clock-names = "bus";
 			nvmem-cells = <&ths_calib>;
 			nvmem-cell-names = "calibration";
+			nvmem-names = "sid";
+			nvmem = <&sunxi_sid>;
 			#thermal-sensor-cells = <1>;
 		};
 

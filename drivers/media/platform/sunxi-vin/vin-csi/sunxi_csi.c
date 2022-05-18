@@ -31,6 +31,9 @@
 
 #define CSI_MODULE_NAME "vin_csi"
 
+#define CSI_VER_BIG 0x230
+#define CSI_VER_SMALL 0x200
+
 #define IS_FLAG(x, y) (((x)&(y)) == y)
 
 struct csi_dev *glb_parser[VIN_MAX_CSI];
@@ -162,6 +165,57 @@ static int __csi_pin_release(struct csi_dev *dev)
 	return 0;
 }
 
+static void csi_par_g_output_size(struct csi_dev *csi,
+	struct prs_output_size *size, int csi_ch, unsigned int bpp)
+{
+	if (!csi->tvin.flag)
+		return;
+
+	switch (csi->tvin.tvin_info.input_fmt[csi_ch]) {
+	case CVBS_PAL:
+	case YCBCR_576P:
+	case YCBCR_576I:
+		size->hor_len = 720;
+		size->ver_len = 576;
+		break;
+	case CVBS_NTSC:
+	case YCBCR_480I:
+	case YCBCR_480P:
+		size->hor_len = 720;
+		size->ver_len = 480;
+		break;
+	case AHD720P:
+		size->hor_len = 1280;
+		size->ver_len = 720;
+		break;
+	case AHD1080P:
+		size->hor_len = 1920;
+		size->ver_len = 1080;
+		break;
+	case CVBS_H1440_PAL:
+		size->hor_len = 1440;
+		size->ver_len = 576;
+		break;
+	case CVBS_H1440_NTSC:
+		size->hor_len = 1440;
+		size->ver_len = 480;
+		break;
+	case CVBS_FRAME_PAL:
+		size->hor_len = 720;
+		size->ver_len = 604;
+		break;
+	case CVBS_FRAME_NTSC:
+		size->hor_len = 720;
+		size->ver_len = 510;
+		break;
+	default:
+		size->hor_len = 1280;
+		size->ver_len = 720;
+	}
+	if (bpp)
+		size->hor_len = size->hor_len * bpp;
+}
+
 static int __csi_set_fmt_hw(struct csi_dev *csi)
 {
 	struct v4l2_mbus_framefmt *mf = &csi->mf;
@@ -169,7 +223,12 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 	struct prs_mcsi_if_cfg mcsi_if;
 	struct prs_cap_mode mode;
 	struct mbus_framefmt_res *res = (void *)mf->reserved;
+	struct vin_md *vind = dev_get_drvdata(csi->subdev.v4l2_dev->dev);
+
 	int i;
+	int csi_ver_big, csi_ver_small;
+	csi_ver_big = vind->csic_ver.ver_big;
+	csi_ver_small = vind->csic_ver.ver_small;
 
 	memset(&bt656_header, 0, sizeof(bt656_header));
 	memset(&mcsi_if, 0, sizeof(mcsi_if));
@@ -192,7 +251,7 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 		break;
 	}
 
-	switch (mf->field) {
+	switch (mf->field & 0xff) {
 	case V4L2_FIELD_ANY:
 	case V4L2_FIELD_NONE:
 		csi->ncsi_if.type = PROGRESSED;
@@ -217,6 +276,12 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 		break;
 	}
 
+	if (csi->tvin.flag) {
+		csi->ncsi_if.type = INTERLACE;
+		csi->ncsi_if.mode = FRAME_MODE;
+		mcsi_if.mode = FRAME_MODE;
+	}
+
 	switch (csi->bus_info.bus_if) {
 	case V4L2_MBUS_PARALLEL:
 		if (csi->csi_fmt->data_width == 16)
@@ -225,7 +290,11 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 			csi->ncsi_if.intf = PRS_IF_INTLV;
 		csic_prs_mode(csi->id, PRS_NCSI);
 		csic_prs_ncsi_if_cfg(csi->id, &csi->ncsi_if);
+		if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL)
+			csic_prs_ncsi_set_field(csi->id, csi->bus_info.ch_total_num, mf->field);
 		csic_prs_ncsi_en(csi->id, 1);
+		if (res->res_bpp)
+			res->res_bpp = res->res_bpp / 2;
 		break;
 	case V4L2_MBUS_BT656:
 		if (csi->csi_fmt->data_width == 16) {
@@ -235,10 +304,17 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 				csi->ncsi_if.intf = PRS_IF_BT1120_2CH;
 			else if (csi->bus_info.ch_total_num == 4)
 				csi->ncsi_if.intf = PRS_IF_BT1120_4CH;
-			if (csi->ncsi_if.ddr_sample == 1)
-				csic_prs_set_pclk_dly(csi->id, 0xb);
+
+			if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL)
+				csic_prs_set_pclk_dly(csi->id, 0x4);
 			else
-				csic_prs_set_pclk_dly(csi->id, 0x9);
+				if (csi->ncsi_if.ddr_sample == 1)
+					csic_prs_set_pclk_dly(csi->id, 0xb);
+				else
+					csic_prs_set_pclk_dly(csi->id, 0x9);
+
+			if (res->res_bpp)
+				res->res_bpp = res->res_bpp / 2;
 		} else {
 			if (csi->bus_info.ch_total_num == 1)
 				csi->ncsi_if.intf = PRS_IF_BT656_1CH;
@@ -256,17 +332,23 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 		bt656_header.ch3_id = 3;
 		csic_prs_ncsi_bt656_header_cfg(csi->id, &bt656_header);
 		csic_prs_ncsi_if_cfg(csi->id, &csi->ncsi_if);
+		if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL)
+			csic_prs_ncsi_set_field(csi->id, csi->bus_info.ch_total_num, mf->field);
 		csic_prs_ncsi_en(csi->id, 1);
 		break;
 	case V4L2_MBUS_CSI2:
 		csic_prs_mode(csi->id, PRS_MCSI);
 		csic_prs_mcsi_if_cfg(csi->id, &mcsi_if);
 		csic_prs_mcsi_en(csi->id, 1);
+		if (res->res_bpp)
+			res->res_bpp = res->res_bpp / 2;
 		break;
 	default:
 		csic_prs_mode(csi->id, PRS_MCSI);
 		csic_prs_mcsi_if_cfg(csi->id, &mcsi_if);
 		csic_prs_mcsi_en(csi->id, 1);
+		if (res->res_bpp)
+			res->res_bpp = res->res_bpp / 2;
 		break;
 	}
 
@@ -283,13 +365,25 @@ static int __csi_set_fmt_hw(struct csi_dev *csi)
 		csi->out_size.ver_start = 0;
 	}
 
-	if (mf->field == V4L2_FIELD_INTERLACED || mf->field == V4L2_FIELD_TOP ||
-	    mf->field == V4L2_FIELD_BOTTOM)
+	if ((mf->field & 0xff) == V4L2_FIELD_INTERLACED || (mf->field & 0xff) == V4L2_FIELD_TOP ||
+	    (mf->field & 0xff) == V4L2_FIELD_BOTTOM)
 		csi->out_size.ver_len = csi->out_size.ver_len / 2;
 
+	if (res->res_bpp)
+		csi->out_size.hor_len = csi->out_size.hor_len * res->res_bpp;
+
 	for (i = 0; i < csi->bus_info.ch_total_num; i++) {
-		csic_prs_input_fmt_cfg(csi->id, i, csi->csi_fmt->infmt);
-		csic_prs_output_size_cfg(csi->id, i, &csi->out_size);
+		if (csi->tvin.flag) {
+			csic_prs_input_fmt_cfg(csi->id, i, csi->csi_fmt->infmt);
+			csi_par_g_output_size(csi, &csi->tvin.out_size[i], i, res->res_bpp);
+			if (csi->tvin.tvin_info.input_fmt[i] == CVBS_H1440_PAL ||
+				csi->tvin.tvin_info.input_fmt[i] == CVBS_H1440_NTSC)
+				csi->tvin.out_size[i].ver_len = csi->tvin.out_size[i].ver_len / 2;
+			csic_prs_output_size_cfg(csi->id, i, &csi->tvin.out_size[i]);
+		} else {
+			csic_prs_input_fmt_cfg(csi->id, i, csi->csi_fmt->infmt);
+			csic_prs_output_size_cfg(csi->id, i, &csi->out_size);
+		}
 	}
 
 	if (res->res_wdr_mode == ISP_SEHDR_MODE)
@@ -335,6 +429,7 @@ static int sunxi_csi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 		csic_prs_enable(csi->id);
 		__csi_set_fmt_hw(csi);
 	} else {
+		csi->tvin.flag = false;
 #ifndef SUPPORT_ISP_TDM
 		switch (csi->bus_info.bus_if) {
 		case V4L2_MBUS_PARALLEL:
@@ -360,7 +455,7 @@ static int sunxi_csi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 #endif
 	}
 
-	vin_log(VIN_LOG_FMT, "parser%d %s, %d*%d hoff: %d voff: %d code: %x field: %d\n",
+	vin_log(VIN_LOG_FMT, "parser%d %s, %d*%d hoff: %d voff: %d code: %x field: %x\n",
 		csi->id, enable ? "stream on" : "stream off",
 		csi->out_size.hor_len, csi->out_size.ver_len,
 		csi->out_size.hor_start, csi->out_size.ver_start,
@@ -552,6 +647,49 @@ static int sunxi_csi_s_mbus_config(struct v4l2_subdev *sd,
 	return 0;
 }
 
+static int csi_tvin_init(struct v4l2_subdev *sd,
+			struct tvin_init_info *info)
+{
+	struct csi_dev *csi = v4l2_get_subdevdata(sd);
+	struct v4l2_mbus_framefmt *mf = &csi->mf;
+	struct mbus_framefmt_res *res = (void *)mf->reserved;
+	int ch = info->ch_id;
+
+	if (ch > 3) {
+		vin_err("[%s]parser ch can not over 3\n", __func__);
+		return -1;
+	}
+
+	csi->tvin.tvin_info.input_fmt[ch] = info->input_fmt[ch];
+	if (sd->entity.stream_count != 0) {
+		csi_par_g_output_size(csi, &csi->tvin.out_size[ch], ch, res->res_bpp);
+		if (csi->tvin.tvin_info.input_fmt[ch] == CVBS_H1440_PAL ||
+			csi->tvin.tvin_info.input_fmt[ch] == CVBS_H1440_NTSC)
+			csi->tvin.out_size[ch].ver_len = csi->tvin.out_size[ch].ver_len / 2;
+		csic_prs_output_size_cfg(csi->id, ch, &csi->tvin.out_size[ch]);
+	}
+	csi->tvin.flag = true;
+	return 0;
+}
+
+static long csi_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+{
+	int ret = 0;
+
+	switch (cmd) {
+	case PARSER_TVIN_INIT:
+		ret = csi_tvin_init(sd, (struct tvin_init_info *)arg);
+		break;
+	default:
+		return -EINVAL;
+	}
+	return ret;
+}
+
+static const struct v4l2_subdev_core_ops csi_core_ops = {
+	.ioctl = csi_ioctl,
+};
+
 static const struct v4l2_subdev_video_ops sunxi_csi_subdev_video_ops = {
 	.s_stream = sunxi_csi_subdev_s_stream,
 	.s_mbus_config = sunxi_csi_s_mbus_config,
@@ -565,6 +703,7 @@ static const struct v4l2_subdev_pad_ops sunxi_csi_subdev_pad_ops = {
 };
 
 static struct v4l2_subdev_ops sunxi_csi_subdev_ops = {
+	.core = &csi_core_ops,
 	.video = &sunxi_csi_subdev_video_ops,
 	.pad = &sunxi_csi_subdev_pad_ops,
 };

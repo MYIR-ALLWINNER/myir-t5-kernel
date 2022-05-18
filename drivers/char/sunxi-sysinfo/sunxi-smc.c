@@ -55,16 +55,32 @@
 	OPTEE_SMC_FAST_CALL_VAL(OPTEE_SMC_FUNCID_GET_TEEADDR_PARAS)
 #define ARM_SVC_GET_TEEADDR_PARAS    OPTEE_SMC_GET_TEEADDR_PARAS
 
+#define OPTEE_SMC_FUNCID_READ_EFUSE  24
+#define OPTEE_SMC_READ_EFUSE \
+	OPTEE_SMC_FAST_CALL_VAL(OPTEE_SMC_FUNCID_READ_EFUSE)
+
+
+#define OPTEE_SMC_FUNCID_WRITE_EFUSE  25
+#define OPTEE_SMC_WRITE_EFUSE \
+	OPTEE_SMC_FAST_CALL_VAL(OPTEE_SMC_FUNCID_WRITE_EFUSE)
+
 #ifdef CONFIG_ARM64
 /*cmd to call ATF service*/
 #define ARM_SVC_EFUSE_PROBE_SECURE_ENABLE    (0xc000fe03)
 #define ARM_SVC_READ_SEC_REG                 (0xC000ff05)
 #define ARM_SVC_WRITE_SEC_REG                (0xC000ff06)
+#define ARM_SVC_EFUSE_READ_AARCH64	(0xc000fe00)
+#define ARM_SVC_EFUSE_WRITE_AARCH64	(0xc000fe01)
+#define ARM_SVC_EFUSE_READ	ARM_SVC_EFUSE_READ_AARCH64
+#define ARM_SVC_EFUSE_WRITE	ARM_SVC_EFUSE_WRITE_AARCH64
 #else
 /*cmd to call TEE service*/
 #define ARM_SVC_READ_SEC_REG        OPTEE_SMC_READ_REG
 #define ARM_SVC_WRITE_SEC_REG       OPTEE_SMC_WRITE_REG
+#define ARM_SVC_EFUSE_READ	OPTEE_SMC_READ_EFUSE
+#define ARM_SVC_EFUSE_WRITE	OPTEE_SMC_WRITE_EFUSE
 #endif
+
 
 /*interface for smc */
 u32 sunxi_smc_readl(phys_addr_t addr)
@@ -101,6 +117,37 @@ int sunxi_smc_writel(u32 value, phys_addr_t addr)
 #endif
 }
 EXPORT_SYMBOL_GPL(sunxi_smc_writel);
+
+int arm_svc_efuse_write(phys_addr_t key_buf)
+{
+#ifdef CONFIG_ARM64
+	return invoke_smc_fn(ARM_SVC_EFUSE_WRITE,
+				(unsigned long)key_buf, 0, 0);
+#elif defined(CONFIG_TEE)
+	struct arm_smccc_res res;
+	arm_smccc_smc(ARM_SVC_EFUSE_WRITE, (unsigned long)key_buf, 0, 0, 0, 0, 0, 0, &res);
+	return res.a0;
+#else
+	return -1;
+#endif
+}
+EXPORT_SYMBOL_GPL(arm_svc_efuse_write);
+
+int arm_svc_efuse_read(phys_addr_t key_buf, phys_addr_t read_buf)
+{
+#ifdef	CONFIG_ARM64
+	return invoke_smc_fn(ARM_SVC_EFUSE_READ,
+		(ulong)key_buf, (ulong)read_buf, 0);
+#elif defined(CONFIG_TEE)
+	struct arm_smccc_res res;
+	arm_smccc_smc(ARM_SVC_EFUSE_READ, (unsigned long)key_buf, (unsigned long)read_buf, 0, 0, 0, 0, 0, &res);
+	return res.a0;
+#else
+	return -1;
+#endif
+
+}
+EXPORT_SYMBOL_GPL(arm_svc_efuse_read);
 
 int sunxi_smc_copy_arisc_paras(phys_addr_t dest, phys_addr_t src, u32 len)
 {

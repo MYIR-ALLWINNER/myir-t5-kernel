@@ -1,0 +1,28 @@
+12c12
+< #include "sun50iw9p1-pinctrl.dtsi"
+---
+> #include "sun50iw9p1-myir-pinctrl.dtsi"
+28c28
+< 		twi2 = &twi2;
+---
+> 		//twi2 = &twi2;
+744c744
+< 			status = "okay";
+---
+> 			status = "disabled";
+791a792
+> /*
+805a807
+> */
+1101,1103c1103,1105
+< 			//pinctrl-names = "default","sleep";
+< 			//pinctrl-0 = <&ahub_daudio2_pins_a>;
+< 			//pinctrl-1 = <&ahub_daudio2_pins_b>;
+---
+> 			pinctrl-names = "default","sleep";
+> 			pinctrl-0 = <&ahub_daudio2_pins_a>;
+> 			pinctrl-1 = <&ahub_daudio2_pins_b>;
+1915c1917
+< 			status = "okay";
+---
+> 			status = "disabled";

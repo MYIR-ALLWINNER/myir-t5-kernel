@@ -16,14 +16,37 @@
  * (at your option) any later version.
  */
 
+#include <linux/kernel.h>
+#include <linux/printk.h>
+#include <linux/slab.h>
+#include <linux/uaccess.h>
+#include <linux/crc32.h>
+#include <linux/device.h>
+#include <linux/kdev_t.h>
+#include <linux/module.h>
+#include <linux/ioctl.h>
+#include <linux/miscdevice.h>
+#include <linux/kthread.h>
+#include <linux/workqueue.h>
+
 #include <linux/io.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/err.h>
 #include <linux/sunxi-smc.h>
-
+#include <linux/fs.h>
 #include <linux/sunxi-sid.h>
+
 #include "sunxi-sid-efuse.h"
+
+
+#define SEC_BLK_SIZE						(4096)
+
+#define SUNXI_EFUSE_READ	_IO('V', 1)
+#define SUNXI_EFUSE_WRITE	_IO('V', 2)
+
+static efuse_cry_pt nfcr;
+static sunxi_efuse_key_info_t temp_key;
 
 #define SID_DBG(fmt, arg...) pr_debug("%s()%d - "fmt, __func__, __LINE__, ##arg)
 #define SID_WARN(fmt, arg...) pr_warn("%s()%d - "fmt, __func__, __LINE__, ##arg)
@@ -408,7 +431,6 @@ static u32 sid_rd_bits(s8 *name, u32 offset, u32 shift, u32 mask, u32 sec)
 
 void sid_rd_ver_reg(u32 id)
 {
-	s32 i = 0;
 	u32 ver = 0;
 	struct soc_ver_reg *reg = &soc_ver_regs[0];
 
@@ -416,14 +438,9 @@ void sid_rd_ver_reg(u32 id)
 		reg->shift, reg->mask, 0);
 	WARN_ON(ver >= SUNXI_VER_MAX_NUM/2);
 
-	sunxi_soc_ver = soc_ver[0].rev[ver];
-	for (i = 0; soc_ver[i].id != 0xFF; i++)
-		if (id == soc_ver[i].id) {
-			sunxi_soc_ver = soc_ver[i].rev[ver];
-			break;
-		}
+	sunxi_soc_ver = soc_ver[0].rev[0] | ver;
 
-	SID_DBG("%d-%d: soc_ver %#x\n", i, ver, sunxi_soc_ver);
+	SID_DBG("ver:%d: soc_ver %#x\n", ver, sunxi_soc_ver);
 }
 
 #ifdef SUNXI_SOC_ID_IN_SID
@@ -826,4 +843,164 @@ s32 sunxi_efuse_readn(void *key_name, void *buf, u32 n)
 	return 0;
 }
 EXPORT_SYMBOL(sunxi_efuse_readn);
+
+
+
+
+static int sunxi_efuse_open(struct inode *inode, struct file *file)
+{
+	return 0;
+}
+
+static int sunxi_efuse_release(struct inode *inode, struct file *file)
+{
+	return 0;
+}
+
+
+static long sunxi_efuse_ioctl(struct file *file, unsigned int ioctl_num,
+		unsigned long ioctl_param)
+{
+	int err = 0;
+
+	mutex_lock(&nfcr->mutex);
+	if (copy_from_user(&nfcr->key_store, (void __user *)ioctl_param, sizeof(nfcr->key_store))) {
+		err = -EFAULT;
+		goto _out;
+	}
+	nfcr->cmd = ioctl_num;
+
+#if 0
+	pr_err("sunxi_efuse_ioctl: ioctl_num=%d\n", ioctl_num);
+	pr_err("nfcr = %p\n", nfcr);
+	pr_err("name = %s\n", nfcr->key_store.name);
+	pr_err("len = %d\n", nfcr->key_store.len);
+#endif
+
+	switch (ioctl_num) {
+	case SUNXI_EFUSE_READ:
+		schedule_work(&nfcr->work);
+		wait_for_completion(&nfcr->work_end);
+		/*sunxi_dump(nfcr->temp_data, 50);*/
+		err = nfcr->ret;
+		if (!err) {
+			if (copy_to_user((void __user *)nfcr->key_store.key_data, (nfcr->temp_data + nfcr->key_store.offset), nfcr->key_store.len)) {
+				err = -EFAULT;
+				pr_err("copy_to_user: err:%d\n", err);
+				goto _out;
+			}
+		}
+		break;
+	case SUNXI_EFUSE_WRITE:
+		if (copy_from_user(nfcr->temp_data, (void __user *)nfcr->key_store.key_data, nfcr->key_store.len)) {
+			err = -EFAULT;
+			pr_err("copy_from_user: err:%d\n", err);
+			goto _out;
+		}
+		sprintf(temp_key.name, "%s", nfcr->key_store.name);
+		temp_key.len = nfcr->key_store.len;
+		temp_key.offset = nfcr->key_store.offset;
+		temp_key.key_data = virt_to_phys((const volatile void *)nfcr->temp_data);
+		schedule_work(&nfcr->work);
+		wait_for_completion(&nfcr->work_end);
+		err = nfcr->ret;
+		break;
+	default:
+		pr_err("sunxi_efuse_ioctl: un supported cmd:%d\n", ioctl_num);
+		break;
+	}
+_out:
+	memset(nfcr->temp_data, 0, SEC_BLK_SIZE);
+	memset(&nfcr->key_store, 0, sizeof(nfcr->key_store));
+	nfcr->cmd = -1;
+	mutex_unlock(&nfcr->mutex);
+	return err;
+}
+
+static const struct file_operations sunxi_efuse_ops = {
+	.owner 		= THIS_MODULE,
+	.open 		= sunxi_efuse_open,
+	.release 	= sunxi_efuse_release,
+	.unlocked_ioctl = sunxi_efuse_ioctl,
+	.compat_ioctl   = sunxi_efuse_ioctl,
+};
+
+struct miscdevice sunxi_efuse_device = {
+	.minor 	= MISC_DYNAMIC_MINOR,
+	.name 	= "sid_efuse",
+    .fops 	= &sunxi_efuse_ops,
+};
+
+
+static void sunxi_efuse_work(struct work_struct *data)
+{
+	efuse_cry_pt fcpt  = container_of(data, struct efuse_crypt, work);
+	int key_len;
+	switch (fcpt->cmd) {
+#ifdef CONFIG_SUNXI_SMC
+	case SUNXI_EFUSE_READ:
+		key_len = arm_svc_efuse_read(virt_to_phys((const volatile void *)fcpt->key_store.name),
+				virt_to_phys((const volatile void *)fcpt->temp_data));
+		fcpt->ret = (nfcr->key_store.offset + nfcr->key_store.len > key_len ? -1 : 0);
+	break;
+	case SUNXI_EFUSE_WRITE:
+		fcpt->ret = arm_svc_efuse_write(virt_to_phys((const volatile void *)&temp_key));
+	break;
+#endif
+	default:
+		fcpt->ret = -1;
+		pr_err("sunxi_efuse_work: un supported cmd:%d\n", fcpt->cmd);
+		break;
+	}
+
+	if ((fcpt->cmd == SUNXI_EFUSE_READ) || (fcpt->cmd == SUNXI_EFUSE_WRITE))
+		complete(&fcpt->work_end);
+}
+
+static void __exit sunxi_efuse_exit(void)
+{
+	pr_debug("sunxi efuse driver exit\n");
+
+	misc_deregister(&sunxi_efuse_device);
+	kfree(nfcr->temp_data);
+	kfree(nfcr);
+}
+
+
+static int __init sunxi_efuse_init(void)
+{
+	int ret;
+
+	ret = misc_register(&sunxi_efuse_device);
+	if (ret) {
+		pr_err("%s: cannot deregister miscdev.(return value-%d)\n", __func__, ret);
+		return ret;
+	}
+
+	nfcr = kmalloc(sizeof(*nfcr), GFP_KERNEL);
+	if (!nfcr) {
+		pr_err(" - Malloc failed\n");
+		return -1;
+	}
+	memset(nfcr, 0, sizeof(*nfcr));
+
+	nfcr->temp_data = kmalloc(SEC_BLK_SIZE, GFP_KERNEL);
+	if (!nfcr->temp_data) {
+		pr_err("sunxi_efuse_ioctl: error to kmalloc\n");
+		return -1;
+	}
+	memset(nfcr->temp_data, 0, SEC_BLK_SIZE);
+	INIT_WORK(&nfcr->work, sunxi_efuse_work);
+	init_completion(&nfcr->work_end);
+	mutex_init(&nfcr->mutex);
+
+	return 0;
+}
+
+module_init(sunxi_efuse_init);
+module_exit(sunxi_efuse_exit);
+MODULE_LICENSE     ("GPL");
+MODULE_AUTHOR      ("weidonghui");
+MODULE_DESCRIPTION ("sunxi efuse");
+
 

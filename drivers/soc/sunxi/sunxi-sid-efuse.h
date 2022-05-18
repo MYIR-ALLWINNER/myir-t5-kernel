@@ -15,6 +15,38 @@
 
 #include <linux/sunxi-sid.h>
 
+typedef struct {
+	char name[64];
+	uint32_t len;
+	uint32_t offset;
+	uint64_t key_data;
+} sunxi_efuse_key_info_t;
+
+struct efuse_crypt {
+	sunxi_efuse_key_info_t key_store;
+	struct work_struct work;
+	struct completion work_end;
+	struct mutex mutex;
+	unsigned char *temp_data;
+	unsigned int cmd;
+	unsigned int ret;
+};
+
+typedef struct efuse_crypt efuse_cry_st;
+typedef struct efuse_crypt *efuse_cry_pt;
+
+#define SECBLK_READ							_IO('V', 20)
+#define SECBLK_WRITE						_IO('V', 21)
+#define SECBLK_IOCTL						_IO('V', 22)
+
+struct secblc_op_t{
+	int item;
+	unsigned char *buf;
+	unsigned int len;
+};
+
+
+
 struct efuse_key_map {
 	char name[SUNXI_KEY_NAME_LEN];
 	int offset;

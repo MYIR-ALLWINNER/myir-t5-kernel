@@ -66,6 +66,10 @@ struct sunxi_iommu_owner *global_iommu_owner;
 static struct iommu_group *global_group;
 
 static bool tlb_init_flag;
+unsigned int sunxi_iommu_version;
+unsigned int ic_version;
+
+#define IOMMU_VERSION_V14 0x14
 
 static inline u32 *iopde_offset(u32 *iopd, unsigned int iova)
 {
@@ -123,6 +127,22 @@ static int sunxi_tlb_flush(struct sunxi_iommu *iommu)
 	return ret;
 }
 
+static bool is_sunxi_ic_new(void)
+{
+#if defined(CONFIG_ARCH_SUN50IW9)
+	if (ic_version == 2)
+		return true;
+	else
+		return false;
+#elif defined(CONFIG_ARCH_SUN50IW10)
+	if (ic_version == 0 || ic_version == 3 ||
+		ic_version == 4)
+		return false;
+	else
+		return true;
+#endif
+}
+
 static int
 sunxi_tlb_init(struct sunxi_iommu_owner *owner,
 				struct iommu_domain *input_domain)
@@ -138,22 +158,47 @@ sunxi_tlb_init(struct sunxi_iommu_owner *owner,
 	spin_lock_irqsave(&iommu->iommu_lock, mflag);
 	dte_addr = __pa(sunxi_domain->pgtable);
 	sunxi_iommu_write(iommu, IOMMU_TTB_REG, dte_addr);
+	sunxi_iommu_version = sunxi_iommu_read(iommu, IOMMU_VERSION_REG);
 	/* sun8iw15p1: disable preftech on G2D for better performance */
 #if defined(CONFIG_ARCH_SUN8IW15)
 	sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x5f);
 	/* disable preftech for tlb invalid mode for unsolved issue*/
-#elif defined(CONFIG_ARCH_SUN8IW19) || defined(CONFIG_ARCH_SUN50IW9) \
-	|| defined(CONFIG_ARCH_SUN50IW10)
+#elif defined(CONFIG_ARCH_SUN8IW19)
 	sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x0);
+#elif defined(CONFIG_ARCH_SUN50IW10) || defined(CONFIG_ARCH_SUN50IW9)
+	ic_version = readl(ioremap(0x03000024, 4)) & 0x00000007;
+	if (is_sunxi_ic_new()) {
+#if defined(CONFIG_ARCH_SUN50IW10)
+		sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x5f);
+#else
+		sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x3f);
+#endif
+	} else {
+		/* disable preftech for tlb invalid mode for unsolved issue for sun50iw10(old)*/
+		sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x0);
+	}
 #else
 	sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, 0x7f);
 #endif
-	sunxi_iommu_write(iommu, IOMMU_INT_ENABLE_REG, 0xffffffff);
+	/* disable interrupt of prefetch */
+	sunxi_iommu_write(iommu, IOMMU_INT_ENABLE_REG, 0x3003f);
 	sunxi_iommu_write(iommu, IOMMU_BYPASS_REG, iommu->bypass);
 	/* sun50iw9p1: use iova start and end to invalid TLB */
-#if defined(CONFIG_ARCH_SUN50IW9) || defined(CONFIG_ARCH_SUN8IW19) \
-	|| defined(CONFIG_ARCH_SUN50IW10)
+#if defined(CONFIG_ARCH_SUN8IW19)
 	sunxi_iommu_write(iommu, IOMMU_TLB_IVLD_MODE_SEL_REG, 0x1);
+#elif defined(CONFIG_ARCH_SUN50IW10) || defined(CONFIG_ARCH_SUN50IW9)
+	sunxi_iommu_write(iommu, IOMMU_TLB_IVLD_MODE_SEL_REG, 0x1);
+	if (is_sunxi_ic_new()) {
+		/* for sun50iw10/sun50iw9(new) */
+		/* enable prefetch valid fix mode to avoid prefetching extra invalid TLB or PTW */
+		ret = sunxi_iommu_read(iommu, IOMMU_TLB_PREFETCH_REG);
+		sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, ret | 0x30000);
+	} else {
+		/* for sun50iw10/sun50iw9(old) */
+		/* disable prefetch valid fix mode*/
+		ret = sunxi_iommu_read(iommu, IOMMU_TLB_PREFETCH_REG);
+		sunxi_iommu_write(iommu, IOMMU_TLB_PREFETCH_REG, ret & (0xfffcffff));
+	}
 #else
 	sunxi_iommu_write(iommu, IOMMU_TLB_IVLD_MODE_SEL_REG, 0x0);
 #endif
@@ -166,6 +211,7 @@ sunxi_tlb_init(struct sunxi_iommu_owner *owner,
 	sunxi_iommu_write(iommu, IOMMU_AUTO_GATING_REG, 0x1);
 	sunxi_iommu_write(iommu, IOMMU_ENABLE_REG, IOMMU_ENABLE);
 	tlb_init_flag = true;
+
 out:
 	spin_unlock_irqrestore(&iommu->iommu_lock, mflag);
 	return ret;
@@ -221,6 +267,32 @@ out:
 }
 #endif
 
+/* iommu version >= 0x14: use start/end to invalid ptw*/
+static int __maybe_unused sunxi_ptw_cache_invalid_new(dma_addr_t iova_start, dma_addr_t iova_end)
+{
+	struct sunxi_iommu *iommu = global_iommu_dev;
+	int ret = 0;
+	unsigned long mflag;
+
+	pr_debug("iommu: ptw invalid:0x%x-0x%x\n", (unsigned int)iova_start,
+			 (unsigned int)iova_end);
+	spin_lock_irqsave(&iommu->iommu_lock, mflag);
+	sunxi_iommu_write(iommu, IOMMU_PC_IVLD_START_ADDR_REG, iova_start);
+	sunxi_iommu_write(iommu, IOMMU_PC_IVLD_END_ADDR_REG, iova_end);
+	sunxi_iommu_write(iommu, IOMMU_PC_IVLD_ENABLE_REG, 0x1);
+	ret = sunxi_wait_when(
+		(sunxi_iommu_read(iommu, IOMMU_PC_IVLD_ENABLE_REG)&0x1), 2);
+	if (ret) {
+		dev_err(iommu->dev, "PTW cache invalid timed out\n");
+		goto out;
+	}
+
+out:
+	spin_unlock_irqrestore(&iommu->iommu_lock, mflag);
+	return ret;
+}
+
+/* sun50iw10(old) iommu version < 0x14*/
 static int sunxi_ptw_cache_invalid(dma_addr_t iova)
 {
 	struct sunxi_iommu *iommu = global_iommu_dev;
@@ -284,10 +356,16 @@ void sunxi_zap_tlb(unsigned long iova, size_t size)
 #else
 static inline void sunxi_zap_tlb(unsigned long iova, size_t size)
 {
+	sunxi_tlb_invalid(iova, iova + 2 * SPAGE_SIZE);
 	sunxi_tlb_invalid(iova + size - SPAGE_SIZE, iova + size + 8 * SPAGE_SIZE);
 	sunxi_ptw_cache_invalid(iova);
-	sunxi_ptw_cache_invalid(iova + SPD_SIZE);
 	sunxi_ptw_cache_invalid(iova + size);
+	/* new version of iommu (>= 0x14) will not pretetch any extra invalid TLB or PTW ,
+	   so no need to walk around(sunxi_zap_tlb); */
+	if (sunxi_iommu_version >= IOMMU_VERSION_V14 || is_sunxi_ic_new())
+		return ;
+
+	sunxi_ptw_cache_invalid(iova + SPD_SIZE);
 	sunxi_ptw_cache_invalid(iova + size + SPD_SIZE);
 	sunxi_ptw_cache_invalid(iova + size + 2 * SPD_SIZE);
 }
@@ -405,16 +483,6 @@ static size_t sunxi_iommu_unmap(struct iommu_domain *domain, unsigned long iova,
 	mutex_lock(&sunxi_domain->dt_lock);
 
 	/* Invalid TLB */
-	/*
-	for (s_iova_start = iova_start; s_iova_start <= iova_end;
-		s_iova_start = IOVA_4M_ALIGN(iova_start) + 4 * SPD_SIZE) {
-		if (IOVA_4M_ALIGN(s_iova_start) == IOVA_4M_ALIGN(iova_end))
-			sunxi_tlb_invalid(s_iova_start, iova_end);
-		else
-			sunxi_tlb_invalid(s_iova_start, IOVA_4M_ALIGN(
-			s_iova_start + 4 * SPD_SIZE - SPAGE_SIZE));
-	}
-	*/
 	sunxi_tlb_invalid(iova_start, iova_end);
 
 	/* Invalid PTW and clear iommu pagetable pde and pte */
@@ -491,7 +559,8 @@ static size_t sunxi_iommu_unmap(struct iommu_domain *domain, unsigned long iova,
 	}
 
 done:
-	sunxi_zap_tlb(iova, size);
+	if (sunxi_iommu_version < IOMMU_VERSION_V14 || !is_sunxi_ic_new())
+		sunxi_zap_tlb(iova, size);
 	mutex_unlock(&sunxi_domain->dt_lock);
 	trace_sunxi_unmap(iova, size);
 
@@ -1556,6 +1625,7 @@ static int sunxi_iommu_probe(struct platform_device *pdev)
 	irq = platform_get_irq(pdev, 0);
 	if (irq <= 0) {
 		dev_dbg(dev, "Unable to find IRQ resource\n");
+		ret = -ENOENT;
 		goto err_irq;
 	}
 

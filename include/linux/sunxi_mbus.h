@@ -198,6 +198,29 @@ enum mbus_port {
 	MBUS_PORT_CE            = 5,
 	MBUS_PORT_NDFC0         = 8,
 	MBUS_PORTS_MAX          = 29,
+#elif (defined CONFIG_ARCH_SUN50IW9)
+	MBUS_PORT_CPU           = 0,
+	MBUS_PORT_GPU           = 1,
+	/* reversed bit2           */
+	MBUS_PORT_DMA           = 3,
+	MBUS_PORT_VE0           = 4,
+	MBUS_PORT_CE            = 5,
+	MBUS_PORT_TSC0          = 6,
+	/* reversed bit7       */
+	MBUS_PORT_NDFC0         = 8,
+	/* reversed bit9/10    */
+	MBUS_PORT_CSI0          = 11,
+	/* reversed bit12/13    */
+	MBUS_PORT_DI0           = 14,
+	/* reversed bit15       */
+	MBUS_PORT_DE300         = 16,
+	MBUS_PORT_G2D_POT       = 21,
+	MBUS_PORT_CSI1          = 22,
+	MBUS_PORT_ISP1          = 23,
+	MBUS_PORT_VE1           = 24,
+	MBUS_PORT_IOMMU         = 25,
+	MBUS_PORT_HDMI          = 39,
+	MBUS_PORTS_MAX          = 40,
 #else
 	MBUS_PORT_CPU           = 0,
 	MBUS_PORT_GPU           = 1,

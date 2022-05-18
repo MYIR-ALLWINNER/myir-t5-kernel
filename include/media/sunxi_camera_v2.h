@@ -222,6 +222,63 @@ struct vin_debug_mask {
 	__u32 log_mask;
 };
 
+/*
+ *If two chips need to use TVin mode, then this define
+ *is the separation of video nodes of the two chips.
+ *e.g:TVIN_SEPARATE is 2. This means that video0 and
+ *    Video1 belong to the first chips.
+ */
+#define TVIN_SEPARATE		2
+#define TVIN_CH_SIZE            8
+enum tvin_work_mode {
+	Tvd_Input_Type_1CH_CVBS = 0,
+	Tvd_Input_Type_2CH_CVBS,
+	Tvd_Input_Type_4CH_CVBS,
+	Tvd_Input_Type_YCBCR,
+	Tvd_Input_Type_YCBCR_CVBS,
+	Tvd_Input_Type_SIZE,
+};
+
+enum tvin_input_fmt {
+	CVBS_PAL = 0,
+	CVBS_NTSC,
+	AHD720P,
+	AHD1080P,
+	YCBCR_480I,
+	YCBCR_576I,
+	YCBCR_480P,
+	YCBCR_576P,
+	CVBS_H1440_PAL,
+	CVBS_H1440_NTSC,
+	CVBS_FRAME_PAL,
+	CVBS_FRAME_NTSC,
+	INPUT_FMT_SIZE,
+};
+
+struct tvin_init_info {
+	__u32 ch_id;
+	__u32 input_fmt[TVIN_CH_SIZE];
+	__u32 height;
+	__u32 widht;
+	__u32 ch_num;
+	__u16 ch_3d_filter;
+	__u16 fps;
+	__u16 field;
+	__u16 work_mode;
+	__u16 init_all_ch;
+	__u16 init_after_stream_on;
+	__s32 reserved[8];
+};
+
+/*
+ * if channel have video input, then lock is 1.
+ */
+struct tvin_ch_fmt{
+	int input_fmt;
+	int channel;
+	int lock;
+};
+
 #define VIDIOC_ISP_AE_STAT_REQ \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct isp_stat_buf)
 #define VIDIOC_ISP_HIST_STAT_REQ \
@@ -250,7 +307,10 @@ struct vin_debug_mask {
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 13, struct parser_fps_ds)
 #define VIDIOC_SET_LOG_MASK \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 14, struct vin_debug_mask)
-
+#define VIDIOC_TVIN_INIT \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 15, struct tvin_init_info)
+#define VIDIOC_GET_TVIN_INP_FMT \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 16, struct tvin_ch_fmt)
 /*
  * Events
  *
@@ -343,6 +403,11 @@ struct sensor_fps {
 };
 struct sensor_temp {
 	int temp;
+};
+
+struct sensor_output_fmt {
+	unsigned int field;
+	unsigned int ch_id;
 };
 
 struct isp_table_reg_map {
