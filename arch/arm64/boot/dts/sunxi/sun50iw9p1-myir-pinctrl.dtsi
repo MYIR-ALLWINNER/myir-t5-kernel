@@ -228,7 +228,7 @@
 				allwinner,pull = <0>;
 			};
 
-
+/*
 			twi2_pins_a: twi2@0 {
 				allwinner,pins = "PE20", "PE21";
 				allwinner,pname = "twi2_scl", "twi2_sda";
@@ -245,7 +245,7 @@
 				allwinner,drive = <1>;
 				allwinner,pull = <0>;
 			};
-
+*/
 
 			twi3_pins_a: twi3@0 {
 				allwinner,pins = "PA10", "PA11";

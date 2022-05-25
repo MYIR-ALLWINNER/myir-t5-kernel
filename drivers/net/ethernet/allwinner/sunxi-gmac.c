@@ -153,6 +153,7 @@ struct geth_priv {
 	u32 gmac_power_vol[POWER_CHAN_NUM];
 #endif
 	int phyrst;
+	int phypower;
 	u8  rst_active_low;
 	/* definition spinlock */
 	spinlock_t lock;
@@ -480,6 +481,14 @@ static int geth_phy_init(struct net_device *ndev)
 	struct mii_bus *new_bus;
 	struct geth_priv *priv = netdev_priv(ndev);
 	struct phy_device *phydev = ndev->phydev;
+
+	/*add gpio power*/
+	if (gpio_is_valid(priv->phypower)) {
+		gpio_direction_output(priv->phypower,
+				1);
+		msleep(50);
+	}
+
 
 	/* Fixup the phy interface type */
 	if (priv->phy_ext == INT_PHY) {
@@ -1816,6 +1825,15 @@ static int geth_hw_init(struct platform_device *pdev)
 	if (!of_property_read_u32(np, "rx-delay", &value))
 		priv->rx_delay = value;
 
+	priv->phypower = of_get_named_gpio_flags(np, "phy-power", 0, (enum of_gpio_flags *)&cfg);
+	if (gpio_is_valid(priv->phypower)) {
+		if (gpio_request(priv->phypower, "phy-power") < 0) {
+			pr_err("gmac gpio power request fail!\n");
+			ret = -EINVAL;
+			goto pin_err;
+		}
+					                }
+
 	/* config pinctrl */
 	if (EXT_PHY == priv->phy_ext) {
 		priv->phyrst = of_get_named_gpio_flags(np, "phy-rst", 0, (enum of_gpio_flags *)&cfg);
@@ -1848,6 +1866,7 @@ pin_err:
 			regulator_put(priv->gmac_power[i]);
 		}
 	}
+
 clk_err:
 	free_irq(ndev->irq, ndev);
 irq_err:
@@ -1882,6 +1901,9 @@ static void geth_hw_release(struct platform_device *pdev)
 
 		if (gpio_is_valid(priv->phyrst))
 			gpio_free(priv->phyrst);
+		if (gpio_is_valid(priv->phypower))
+			gpio_free(priv->phypower);
+
 	}
 
 	if (!IS_ERR_OR_NULL(priv->ephy_clk))

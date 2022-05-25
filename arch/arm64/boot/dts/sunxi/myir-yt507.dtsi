@@ -219,9 +219,10 @@
 		gmac0: eth@05020000{
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
+			phy-power = <&pio PD 22 1 1 1 0>;
 			use_ephy25m = <1>;
 			tx-delay = <2>;//2
-			rx-delay = <24>;//24
+			rx-delay = <20>;//24
 			gmac-power0-supply = <&reg_dcdc6>;
 			gmac-power1-supply;
 			gmac-power2-supply;
@@ -267,6 +268,7 @@
 		};
 		
 		/*twi2*/
+		/*
 		twi2: twi@0x05002800{
 			clock-frequency = <200000>;
 			pinctrl-0 = <&twi2_pins_a>;
@@ -275,14 +277,14 @@
 			status = "disabled";
 			
 		};
-
+		*/
 
 		/*twi3*/
 		twi3: twi@0x05002c00{
 			clock-frequency = <200000>;
 			pinctrl-0 = <&twi3_pins_a>;
 			pinctrl-1 = <&twi3_pins_b>;
-			//twi-supply = <&reg_dcdc1>;
+			twi-supply = <&reg_dcdc1>;
 			status = "okay";
 		};
 

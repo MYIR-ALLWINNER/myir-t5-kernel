@@ -206,8 +206,9 @@ static int sunxi_sndhdmi_dev_probe(struct platform_device *pdev)
 	snd_soc_card_set_drvdata(card, &sunxi_tdmhdmi);
 	ret = snd_soc_register_card(card);
 	if (ret) {
-		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-			ret);
+		//dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
+		//	ret);
+		return ret;
 	}
 	return ret;
 }

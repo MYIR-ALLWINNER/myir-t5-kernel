@@ -1037,8 +1037,8 @@ static int soc_bind_dai_link(struct snd_soc_card *card,
 	cpu_dai_component.dai_name = dai_link->cpu_dai_name;
 	rtd->cpu_dai = snd_soc_find_dai(&cpu_dai_component);
 	if (!rtd->cpu_dai) {
-		dev_err(card->dev, "ASoC: CPU DAI %s not registered\n",
-			dai_link->cpu_dai_name);
+		//dev_err(card->dev, "ASoC: CPU DAI %s not registered\n",
+		//	dai_link->cpu_dai_name);
 		goto _err_defer;
 	}
 
