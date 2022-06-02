@@ -9,7 +9,7 @@
 #include "sun50iw9p1-myir.dtsi"
 
 /*display*/
-#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
+//#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
 //#include "display/myir-lcd-1lvds-7-1024-600.dtsi"
 //#include "display/myir-lcd-lvds-10.1-1280-800.dtsi" 
 //#include "display/myir-lcd-2lvds-7-1024-600.dtsi"
@@ -284,7 +284,7 @@
 			clock-frequency = <200000>;
 			pinctrl-0 = <&twi3_pins_a>;
 			pinctrl-1 = <&twi3_pins_b>;
-			twi-supply = <&reg_dcdc1>;
+			//twi-supply = <&reg_dcdc1>;
 			status = "okay";
 		};
 
@@ -389,8 +389,8 @@
 			wlan_io_regulator = "axp858-cldo2";
 			wlan_regon    = <&pio PE 12 1 0xffffffff 0xffffffff 1>;
 			wlan_hostwake = <&pio PE 14 1 0xffffffff 0xffffffff 1>;
-			chip_en;
-			power_en;
+			chip_en = <>;
+			power_en = <>;
 			status        = "okay";
 		};
 
