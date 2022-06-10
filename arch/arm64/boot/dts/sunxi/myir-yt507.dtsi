@@ -9,7 +9,7 @@
 #include "sun50iw9p1-myir.dtsi"
 
 /*display*/
-//#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
+#include "display/myir-hdmi-1920x1080-1lvds-7-1024x600.dtsi"     
 //#include "display/myir-lcd-1lvds-7-1024-600.dtsi"
 //#include "display/myir-lcd-lvds-10.1-1280-800.dtsi" 
 //#include "display/myir-lcd-2lvds-7-1024-600.dtsi"
@@ -61,13 +61,11 @@
                 regulator-max-microvolt = <3300000>;
                 enable-active-high;
         };
-
-
-
 	
        pw_en {
                compatible = "pw-en-gpio";
-               gpio0 = <&pio PD 25 1 0xffffffff 0xffffffff 1>;// 4G 3.3V
+               gpio0 = <&pio PD 25 1 0xffffffff 0xffffffff 1>;// 4G 3.3Vi
+		gpio1 = <&pio PD 22 1 0xffffffff 0xffffffff 1>;// VDD3.3-IO
 /*
                gpio1 = <&pio PE 3 1 0xffffffff 0xffffffff 1>; //USB 5V
                gpio2 = <&pio PE 16 1 0xffffffff 0xffffffff 1>;// hub reset
@@ -219,7 +217,7 @@
 		gmac0: eth@05020000{
 			phy-mode = "rgmii";
 			phy-rst = <&pio PI 6 1 1 1 0>;
-			phy-power = <&pio PD 22 1 1 1 0>;
+			//phy-power = <&pio PD 22 1 1 1 0>;
 			use_ephy25m = <1>;
 			tx-delay = <2>;//2
 			rx-delay = <20>;//24
@@ -663,12 +661,17 @@ vinc(x)_sensor_list: use sensor list
 			csi_cci1:cci@1 {
 				status = "okay";
 			};
+			
 			csi0:csi@0 {
 				status = "okay";
 			};
 			csi1:csi@1 {
+				vinc1_rear_sensor_sel = <0>;
+				vinc1_front_sensor_sel = <0>;
+				vinc1_sensor_list = <0>;
 				status = "okay";
 			};
+			
 			actuator0:actuator@0 {
 				device_type = "actuator0";
 				actuator0_name = "ad5820_act";

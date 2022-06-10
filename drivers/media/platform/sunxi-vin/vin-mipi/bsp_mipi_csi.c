@@ -128,48 +128,6 @@ static void mipi_s_pkt(unsigned int sel, unsigned char ch, unsigned char vc,
 	}
 }
 
-static void mipi_set_src_type(unsigned int sel, unsigned char ch,
-		       enum source_type src_type)
-{
-	switch (ch) {
-	case 0:
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 8));
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 9));
-
-		break;
-	case 1:
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 10));
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 11));
-
-		break;
-	case 2:
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 12));
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 13));
-
-		break;
-	case 3:
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 14));
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 15));
-
-		break;
-	default:
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 8));
-		vin_reg_writel(addr + 0x100,
-				vin_reg_readl(addr + 0x100) | (src_type << 9));
-		break;
-	}
-
-}
-
 void bsp_mipi_csi_set_version(unsigned int sel, unsigned int ver)
 {
 	glb_mipicsi2_version[sel] = ver;
@@ -256,41 +214,12 @@ static void bsp_mipi_csi_set_pkt_header(unsigned int sel, unsigned char ch,
 	mipi_s_pkt(sel, ch, vc, mipi_pkt_fmt);
 }
 
-void bsp_mipi_csi_set_src_type(unsigned int sel, unsigned char ch,
-				   enum source_type src_type)
-{
-	mipi_set_src_type(sel, ch, src_type);
-}
-
 void bsp_mipi_csi_set_para(unsigned int sel, struct mipi_para *para)
 {
 	bsp_mipi_csi_set_dphy_timing(sel, &para->bps, para->dphy_freq,
 				     para->auto_check_bps);
 	bsp_mipi_csi_set_lane(sel, para->lane_num);
 	bsp_mipi_csi_set_total_ch(sel, para->total_rx_ch);
-}
-
-void bsp_mipi_csi_set_field(unsigned int sel, unsigned int total_rx_ch,
-			  struct mipi_fmt_cfg *fmt)
-{
-	unsigned int i = 0;
-	int ch0_field, ch0_type;
-
-	ch0_field = fmt->field[i];
-	if (ch0_field == V4L2_FIELD_NONE)
-		ch0_type = PROGRESSIVE;
-	else
-		ch0_type = INTERLACED;
-
-	for (i = 0; i < total_rx_ch; i++) {
-		if (fmt->field[i] == V4L2_FIELD_NONE)
-			bsp_mipi_csi_set_src_type(sel, i, PROGRESSIVE);
-		else if (fmt->field[i] == V4L2_FIELD_INTERLACED
-			|| fmt->field[i] == V4L2_FIELD_TOP || fmt->field[i] == V4L2_FIELD_BOTTOM)
-			bsp_mipi_csi_set_src_type(sel, i, INTERLACED);
-		else
-			bsp_mipi_csi_set_src_type(sel, i, ch0_type);
-	}
 }
 
 void bsp_mipi_csi_set_fmt(unsigned int sel, unsigned int total_rx_ch,

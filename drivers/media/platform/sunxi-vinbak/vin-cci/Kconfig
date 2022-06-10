@@ -1,0 +1,16 @@
+choice
+	depends on CSI_CCI
+	prompt "select cci or cci to twi"
+	default CCI
+
+config CCI
+	bool "use internal cci"
+
+config CCI_TO_TWI
+	bool "chenge cci to twi"
+
+endchoice
+
+config CCI_ALWAYS_ON
+	bool "cci always on after inmod VIN module"
+        default n

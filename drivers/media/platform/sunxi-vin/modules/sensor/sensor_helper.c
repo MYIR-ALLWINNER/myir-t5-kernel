@@ -407,8 +407,7 @@ static struct sensor_win_size *sensor_find_frame_size(struct v4l2_subdev *sd,
 
 static void sensor_fill_mbus_fmt(struct v4l2_subdev *sd,
 				struct v4l2_mbus_framefmt *mf,
-				const struct sensor_win_size *ws,
-				u32 code, struct sensor_format_struct *sf)
+				const struct sensor_win_size *ws, u32 code)
 {
 	struct sensor_info *info = to_state(sd);
 	struct mbus_framefmt_res *res = (void *)mf->reserved;
@@ -422,7 +421,6 @@ static void sensor_fill_mbus_fmt(struct v4l2_subdev *sd,
 	res->res_wdr_mode = ws->wdr_mode;
 	res->res_lp_mode = ws->lp_mode;
 	res->res_time_hs = info->time_hs;
-	res->res_bpp = sf->bpp;
 }
 
 static void sensor_try_format(struct v4l2_subdev *sd,
@@ -447,7 +445,7 @@ static void sensor_try_format(struct v4l2_subdev *sd,
 			code = (*sf)->mbus_code;
 		}
 	}
-	sensor_fill_mbus_fmt(sd, &fmt->format, *ws, code, *sf);
+	sensor_fill_mbus_fmt(sd, &fmt->format, *ws, code);
 }
 
 int sensor_get_fmt(struct v4l2_subdev *sd,
@@ -477,7 +475,7 @@ int sensor_get_fmt(struct v4l2_subdev *sd,
 		mutex_unlock(&info->lock);
 		return -EINVAL;
 	}
-	sensor_fill_mbus_fmt(sd, &fmt->format, ws, code, info->fmt);
+	sensor_fill_mbus_fmt(sd, &fmt->format, ws, code);
 	mutex_unlock(&info->lock);
 	return 0;
 }
@@ -678,13 +676,6 @@ static int sensor_helper_probe(struct platform_device *pdev)
 	} else
 		vin_log(VIN_LOG_POWER, "sensor_helper get name is %s\n", sensor_helper->name);
 
-	snprintf(power_supply, sizeof(power_supply), "sensor%d_reservevdd", pdev->id);
-	sensor_helper->pmic[RESERVEVDD] = regulator_get_optional(dev, power_supply);
-	if (IS_ERR(sensor_helper->pmic[RESERVEVDD])) {
-		vin_warn("%s: cannot get %s supply, setting it to NULL!\n", __func__, power_supply);
-		sensor_helper->pmic[RESERVEVDD] = NULL;
-	}
-
 	snprintf(power_supply, sizeof(power_supply), "sensor%d_cameravdd", pdev->id);
 	sensor_helper->pmic[CAMERAVDD] = regulator_get_optional(dev, power_supply);
 	if (IS_ERR(sensor_helper->pmic[CAMERAVDD])) {
@@ -733,8 +724,6 @@ static int sensor_helper_remove(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, NULL);
 	sensor_helper->name = NULL;
-	regulator_put(sensor_helper->pmic[RESERVEVDD]);
-	sensor_helper->pmic[RESERVEVDD] = NULL;
 	regulator_put(sensor_helper->pmic[CAMERAVDD]);
 	sensor_helper->pmic[CAMERAVDD] = NULL;
 	regulator_put(sensor_helper->pmic[IOVDD]);

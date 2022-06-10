@@ -56,19 +56,6 @@ static void set_cameravdd_vol(struct sensor_list *sensors,
 		sensors->power[CAMERAVDD].power_vol = *(int *)value;
 }
 
-static void set_reservevdd(struct sensor_list *sensors,
-		void *value, int len)
-{
-	if (sensors->power_set)
-		strcpy(sensors->power[RESERVEVDD].power_str, (char *)value);
-}
-static void set_reservevdd_vol(struct sensor_list *sensors,
-		void *value, int len)
-{
-	if (!sensors->power_set)
-		sensors->power[RESERVEVDD].power_vol = *(int *)value;
-}
-
 static void set_iovdd(struct sensor_list *sensors,
 		void *value, int len)
 {
@@ -189,8 +176,6 @@ static struct SensorParamAttribute SensorParamCommon[] = {
 	{"power_settings_enable", 1, INTEGER, set_power_settings_en,},
 	{"cameravdd", 1, STRING, set_cameravdd,},
 	{"cameravdd_vol", 1, INTEGER, set_cameravdd_vol,},
-	{"reservevdd", 1, STRING, set_reservevdd,},
-	{"reservevdd_vol", 1, INTEGER, set_reservevdd_vol,},
 	{"iovdd", 1, STRING, set_iovdd,},
 	{"iovdd_vol", 1, INTEGER, set_iovdd_vol,},
 	{"avdd", 1, STRING, set_avdd,},
@@ -453,16 +438,6 @@ static int get_cameravdd_vol(struct device_node *np, const char *name,
 {
 	return get_value_int(np, name, &sc->power[CAMERAVDD].power_vol);
 }
-static int get_reservevdd(struct device_node *np, const char *name,
-		     struct sensor_list *sc)
-{
-	return get_value_string(np, name, sc->power[RESERVEVDD].power_str);
-}
-static int get_reservevdd_vol(struct device_node *np, const char *name,
-			 struct sensor_list *sc)
-{
-	return get_value_int(np, name, &sc->power[RESERVEVDD].power_vol);
-}
 static int get_iovdd(struct device_node *np, const char *name,
 		     struct sensor_list *sc)
 {
@@ -612,8 +587,6 @@ static struct FetchFunArr fetch_camera[] = {
 	{"hflip", 1, get_hflip,},
 	{"cameravdd", 1, get_cameravdd,},
 	{"cameravdd_vol", 1, get_cameravdd_vol},
-	{"reservevdd", 1, get_reservevdd,},
-	{"reservevdd_vol", 1, get_reservevdd_vol},
 	{"iovdd", 1, get_iovdd,},
 	{"iovdd_vol", 1, get_iovdd_vol},
 	{"avdd", 1, get_avdd,},

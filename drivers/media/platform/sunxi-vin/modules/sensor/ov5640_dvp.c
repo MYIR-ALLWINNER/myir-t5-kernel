@@ -414,11 +414,11 @@ static int sensor_detect(struct v4l2_subdev *sd)
 	ret = sensor_write(sd, 0x3103, 0x11);
 	if (ret < 0)
 		return -ENODEV;
-
+	printk("ov5640 sensor write cmd !\n");
 	ret = ov5640_write_array(sd, ov5640_reset_regs, sizeof(ov5640_reset_regs) / sizeof(ov5640_reset_regs[0]));
 	if (ret < 0)
 		return -ENODEV;
-
+	printk("ov5640 sensor write reg !\n");
 	msleep(100);
 	ret = ov5640_write_array(sd, ov5640_init_regs, sizeof(ov5640_init_regs) / sizeof(ov5640_init_regs[0]));
 	if (ret < 0) {

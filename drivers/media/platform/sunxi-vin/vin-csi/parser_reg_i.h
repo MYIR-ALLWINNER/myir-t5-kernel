@@ -60,11 +60,7 @@
 #define PRS_NCSIC_IF_VREF_POL_MASK    (0X1 << PRS_NCSIC_IF_VREF_POL)
 #define PRS_NCSIC_IF_FIELD_POL         19
 #define PRS_NCSIC_IF_FIELD_POL_MASK   (0X1 << PRS_NCSIC_IF_FIELD_POL)
-
-/* T507 FULL MASK support multi channel src types */
-#define PRS_NCSIC_IF_SRC_TYPES      20
-#define PRS_NCSIC_IF_SRC_TYPES_MASK    (0X1 << PRS_NCSIC_IF_SRC_TYPES)
-
+#define PRS_NCSIC_IF_RES0              20
 #define PRS_NCSIC_IF_SRC_TYPE          21
 #define PRS_NCSIC_IF_SRC_TYPE_MASK    (0X1 << PRS_NCSIC_IF_SRC_TYPE)
 #define PRS_NCSIC_IF_PCLK_SHIFT        24

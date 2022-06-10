@@ -920,11 +920,10 @@ int nvp6158_set_chnmode(const unsigned char ch, const unsigned char chnmode)
 			gpio_i2c_write(nvp6158_iic_addr[ch/4], 0x40+ch%4, 0x61);
 			msleep(35);
 			if (AHD20_SD_H960_2EX_Btype_PAL  >=  chnmode)
-				/* 0x60 -> 0x40, improve color signal steady speed */
-				gpio_i2c_write(nvp6158_iic_addr[ch/4], 0x40+ch%4, 0x40); /* for comet setting */
+				gpio_i2c_write(nvp6158_iic_addr[ch/4], 0x40+ch%4, 0x60); /* for comet setting */
 			else
 				gpio_i2c_write(nvp6158_iic_addr[ch/4], 0x40+ch%4, 0x00);
-			//nvp6158_show_ch(ch); // bugid#44372 sunxilong: fix screen flickers when fast reversing
+			nvp6158_show_ch(ch);
 		} else {
 			nvp6158_hide_ch(ch);
 			auto_novid.ch = ch%4;

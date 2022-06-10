@@ -1,4 +1,4 @@
-obj-m			+= ov5640.o
+#obj-y			+= ov5640.o
 #obj-m			+= ov2775_mipi.o
 #obj-m			+= gc2145.o
 obj-m			+= gc0310_mipi.o
@@ -25,8 +25,9 @@ obj-m			+= imx317_mipi.o
 #obj-m			+= nvp6134/
 obj-y			+= nvp6324/
 obj-y			+= nvp6158/
-obj-y			+= td100/
 obj-y			+= max9286_mipi.o
 obj-y			+= rn6854m_mipi.o
+obj-y			+= ov5640_mipi.o
+obj-y			+= ov5640_dvp.o
 #obj-m			+= tp9950.o
 #obj-m			+= sc2232_mipi.o

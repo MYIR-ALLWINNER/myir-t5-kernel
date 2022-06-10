@@ -38,9 +38,6 @@ typedef enum tag_CAMERA_IO_CMD {
 	GET_COMBO_LANE_MAP,
 	GET_COMBO_WDR_CFG,
 	SET_SENSOR_STANDBY,
-	SENSOR_TVIN_INIT,
-	GET_SENSOR_CH_INPUT_FMT,
-	GET_SENSOR_CH_OUTPUT_FMT,
 } __camera_cmd_t;
 
 struct sensor_exif_attribute {

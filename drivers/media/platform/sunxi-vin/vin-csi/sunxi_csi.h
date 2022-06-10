@@ -33,16 +33,6 @@ struct csi_format {
 	unsigned int data_width;
 };
 
-struct csi_tvin {
-	bool flag;
-	struct tvin_init_info tvin_info;
-	struct prs_output_size out_size[MAX_CH_NUM];
-};
-
-enum tag_CSI_IO_CMD {
-	PARSER_TVIN_INIT
-};
-
 struct csi_dev {
 	u8 id;
 	u8 capture_mode;
@@ -63,7 +53,6 @@ struct csi_dev {
 	struct mutex reset_lock;
 	struct prs_fps_ds prs_fps_ds;
 	unsigned int reset_time;
-	struct csi_tvin tvin;
 };
 
 struct v4l2_subdev *sunxi_csi_get_subdev(int id);

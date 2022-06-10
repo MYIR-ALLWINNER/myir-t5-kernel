@@ -24,12 +24,7 @@
 #include "combo_csi/combo_csi_reg.h"
 #include "sunxi_mipi.h"
 #include "../platform/platform_cfg.h"
-#include "../vin-video/vin_core.h"
-
 #define MIPI_MODULE_NAME "vin_mipi"
-
-#define CSI_VER_BIG 0x230
-#define CSI_VER_SMALL 0x200
 
 #define IS_FLAG(x, y) (((x)&(y)) == y)
 
@@ -485,12 +480,8 @@ static int sunxi_mipi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 	struct mipi_dev *mipi = v4l2_get_subdevdata(sd);
 	struct v4l2_mbus_framefmt *mf = &mipi->format;
 	struct mbus_framefmt_res *res = (void *)mf->reserved;
-	struct vin_md *vind = dev_get_drvdata(mipi->subdev.v4l2_dev->dev);
 
-	int i, j;
-	int csi_ver_big, csi_ver_small;
-	csi_ver_big = vind->csic_ver.ver_big;
-	csi_ver_small = vind->csic_ver.ver_small;
+	int i;
 
 	mipi->csi2_cfg.bps = res->res_mipi_bps;
 	mipi->csi2_cfg.auto_check_bps = 0;
@@ -498,13 +489,8 @@ static int sunxi_mipi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 
 	for (i = 0; i < mipi->csi2_cfg.total_rx_ch; i++) {
 		mipi->csi2_fmt.packet_fmt[i] = get_pkt_fmt(mf->code);
-		mipi->csi2_fmt.field[i] = mf->field & 0xff;
+		mipi->csi2_fmt.field[i] = mf->field;
 		mipi->csi2_fmt.vc[i] = i;
-	}
-
-	if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL) {
-		for (j = 0; j < mipi->csi2_cfg.total_rx_ch; j++)
-			mipi->csi2_fmt.field[j] = (mf->field >> (j * 8)) & 0xff;
 	}
 
 	mipi->csi2_fmt.fmt_type = data_formats_type(get_pkt_fmt(mf->code));
@@ -527,9 +513,6 @@ static int sunxi_mipi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 		bsp_mipi_csi_set_para(mipi->id, &mipi->csi2_cfg);
 		bsp_mipi_csi_set_fmt(mipi->id, mipi->csi2_cfg.total_rx_ch,
 				     &mipi->csi2_fmt);
-		if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL)
-			bsp_mipi_csi_set_field(mipi->id, mipi->csi2_cfg.total_rx_ch,
-						 &mipi->csi2_fmt);
 
 		/*for dphy clock async*/
 		bsp_mipi_csi_dphy_disable(mipi->id, mipi->sensor_flags);
@@ -548,7 +531,7 @@ static int sunxi_mipi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 #endif
 	}
 
-	vin_log(VIN_LOG_FMT, "%s%d %s, lane_num %d, code: %x field: %x\n",
+	vin_log(VIN_LOG_FMT, "%s%d %s, lane_num %d, code: %x field: %d\n",
 		mipi->if_name, mipi->id, enable ? "stream on" : "stream off",
 		mipi->cmb_cfg.lane_num, mf->code, mf->field);
 
