@@ -104,7 +104,6 @@ struct mbus_framefmt_res {
 	u8 res_wdr_mode;
 	u8 res_time_hs;
 	u8 res_lp_mode;
-	u8 res_bpp;
 };
 
 enum steam_on_seq {
@@ -118,18 +117,6 @@ enum steam_on_seq {
 #define CSI_CH_3	(1 << 23)
 
 #define MAX_DETECT_NUM	3
-/*
- * In enum v4l2_field, NONE: 1, INTERLACED: 4.
- */
-#define CH0_FIELD_NONE	(1 << 0)
-#define CH1_FIELD_NONE	(1 << 8)
-#define CH2_FIELD_NONE	(1 << 16)
-#define CH3_FIELD_NONE	(1 << 24)
-
-#define CH0_FIELD_INTERLACED	(4 << 0)
-#define CH1_FIELD_INTERLACED	(4 << 8)
-#define CH2_FIELD_INTERLACED	(4 << 16)
-#define CH3_FIELD_INTERLACED	(4 << 24)
 
 /*
  * The subdevices' group IDs.

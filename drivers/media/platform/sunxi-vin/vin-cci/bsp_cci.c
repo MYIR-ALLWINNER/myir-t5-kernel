@@ -76,7 +76,7 @@ void bsp_csi_cci_init(unsigned int sel)
 
 	csi_cci_reset(sel);
 	csi_cci_enable(sel);
-	cci_cal_div(100 * 1000, div_coef);
+	cci_cal_div(400 * 1000, div_coef);
 	csi_cci_set_clk_div(sel, div_coef);
 	csi_cci_set_pkt_interval(sel, 16);
 	csi_cci_set_ack_timeout(sel, 16);
@@ -93,7 +93,7 @@ void bsp_csi_cci_exit(unsigned int sel)
 
 void bsp_cci_tx_start(unsigned int sel, struct cci_msg *msg)
 {
-	unsigned int i, j, pkt_len, max_pkt_num, pkt_num;
+	unsigned int i, j, pkt_len, max_pkt_num = 0, pkt_num;
 	unsigned char *buf;
 
 	csi_cci_set_bus_fmt(sel, &msg->bus_fmt);

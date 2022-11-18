@@ -55,7 +55,6 @@
 #include "video_eq.h"
 #include "nvp6158_drv.h"
 
-
 extern struct v4l2_subdev *gl_sd;
 #define SENSOR_NAME "nvp6158"
 
@@ -139,56 +138,6 @@ int check_nvp6158_id(unsigned int dec)
 	gpio_i2c_write(dec, 0xFF, 0x00);
 	ret = gpio_i2c_read(dec, 0xf4);
 	return ret;
-}
-
-/*******************************************************************************
-*	Description		: Get NOVID ID
-*	Argurments		: dec(slave address)
-*	Return value	: NOVID ID
-*	Modify			: caofuming@allwinnertech.com
-*	warning			:
-*******************************************************************************/
-int check_nvp6158_novid(unsigned int dec)
-{
-	int ret = 0;
-
-	gpio_i2c_write(dec, 0xFF, 0x00);
-	ret = gpio_i2c_read(dec, 0xa8);
-
-	return ret;
-}
-
-/*******************************************************************************
-*	Description		: for nvp6158c register dump debug
-*	Argurments		: bank
-*	Return value	: none
-*	Modify			: caofuming@allwinnertech.com
-*	warning			:
-*******************************************************************************/
-void nvp6158_dump_bank(int bank)
-{
-	#if 1
-	u32 reg_addr = 0;
-	u32 reg_value;
-	int j, i;
-
-	sensor_print("-----------------[BANK = %d]------------------\n", bank);
-	sensor_print("     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
-	sensor_print("----------------------------------------------------\n");
-
-    gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, bank);
-
-	for (j = 0 ; j < 16; j++) {
-		sensor_print("%02x | ", j * 0x10);
-		for (i = 0; i < 16; i++) {
-			reg_addr  = i + (0x10 * j);
-			reg_value = gpio_i2c_read(nvp6158_iic_addr[0], reg_addr);
-			sensor_print("%02x ", reg_value);
-		}
-		sensor_print("\n");
-    }
-	sensor_print("\n");
-	#endif
 }
 
 #if 0
@@ -781,7 +730,6 @@ int nvp6158_init_hardware(int video_mode)
 		if (chip_nvp6158_id[0] == NVP6158C_R0_ID || chip_nvp6158_id[0] == NVP6158_R0_ID) {
 			video_input_auto_detect_set(&vin_auto_det);
 			/*nvp6158_set_chnmode(ch, NC_VIVO_CH_FORMATDEF_UNKNOWN);*/
-			nvp6158_hide_ch(ch);// bugid#44372 sunxilong: fix screen flickers when fast reversing
 			nvp6158_set_chnmode(ch, video_mode);
 		} else {
 			nvp6168_video_input_auto_detect_set(&vin_auto_det);
@@ -801,11 +749,12 @@ int nvp6158_init_hardware(int video_mode)
 
 			/*nvp6158_set_portmode(chip, 1, NVP6158_OUTMODE_2MUX_FHD, 0);
 			nvp6158_set_portmode(chip, 2, NVP6158_OUTMODE_2MUX_FHD, 1);*/
-			if (video_mode == AHD20_720P_25P
-				|| video_mode == AHD20_SD_H1440_PAL || video_mode == AHD20_SD_H1440_NT) {
+			if (video_mode == AHD20_720P_25P) {
 #if 1 /*BT1120*/
-				nvp6158_set_portmode(chip, 1, NVP6158_OUTMODE_4MUX_BT1120S, 0);
-				nvp6158_set_portmode(chip, 2, NVP6158_OUTMODE_4MUX_BT1120S, 1);
+				nvp6158_set_portmode(chip, 0, NVP6158_OUTMODE_4MUX_BT1120S, 0);
+				nvp6158_set_portmode(chip, 1, NVP6158_OUTMODE_4MUX_BT1120S, 1);
+				nvp6158_set_portmode(chip, 2, NVP6158_OUTMODE_4MUX_BT1120S, 2);
+				nvp6158_set_portmode(chip, 3, NVP6158_OUTMODE_4MUX_BT1120S, 3);
 #else /*BT656--NVP6158_OUTMODE_1MUX_HD / NVP6158_OUTMODE_2MUX_HD / NVP6158_OUTMODE_4MUX_HD*/
 				nvp6158_set_portmode(chip, 0, NVP6158_OUTMODE_1MUX_HD, 0)
 #endif
@@ -814,13 +763,10 @@ int nvp6158_init_hardware(int video_mode)
 				nvp6158_set_portmode(chip, 1, NVP6158_OUTMODE_4MUX_MIX, 1);
 				nvp6158_set_portmode(chip, 2, NVP6158_OUTMODE_4MUX_MIX, 2);
 				nvp6158_set_portmode(chip, 3, NVP6158_OUTMODE_4MUX_MIX, 3);
-			} else if (video_mode == AHD20_SD_SH720_PAL || video_mode == AHD20_SD_SH720_NT) {
-				nvp6158_set_portmode(chip, 1, NVP6158_OUTMODE_4MUX_SD, 0);
-				nvp6158_set_portmode(chip, 2, NVP6158_OUTMODE_4MUX_SD, 1);
 			}
 		}
 		for (ch = 0; ch < 4; ch++) {
-			sensor_print("nvp6158 reg init chip = %d,ch =  %d\n", chip, ch);
+			printk("nvp6158 reg init chip = %d,ch =  %d\n", chip, ch);
 			gpio_i2c_write(nvp6158_iic_addr[chip], 0xFF, 0x00);
 			gpio_i2c_write(nvp6158_iic_addr[chip], 0x23+(ch%4)*4, 0x71);
 			gpio_i2c_write(nvp6158_iic_addr[chip], 0xFF, 0x05+(ch%4));
@@ -871,93 +817,9 @@ int nvp6158_init_hardware(int video_mode)
 	gpio_i2c_write(nvp6158_iic_addr[0], 0x78,
 				0xce); /* ch1:Blue  ch2:Yellow ch3:Green ch4:Red */
 	gpio_i2c_write(nvp6158_iic_addr[0], 0x79, 0xba);
-
-	/*bugid#44372 sunxilong:fix screen flickers when fast reversing #begin */
-	for (ch = 0; ch < nvp6158_cnt * 4; ch++) {
-		msleep(300);
-		nvp6158_show_ch(ch);
-	}
-	/*bugid#44372 sunxilong:fix screen flickers when fast reversing #end */
 #endif
 	return 0;
 }
-
-int nvp6158_init_ch_hardware(struct tvin_init_info *tvin_info)
-{
-	unsigned char ch = 0;
-	video_input_auto_detect vin_auto_det;
-	/* char entry[20]; */
-	nvp6158_cnt = 1;
-	chip_nvp6158_id[0] = NVP6158C_R0_ID;
-
-	/* initialize semaphore */
-	sema_init(&nvp6158_lock, 1);
-	ch = tvin_info->ch_id;
-	/* det_mode[ch] = NVP6158_DET_MODE_AUTO; */
-	det_mode[ch] = NVP6158_DET_MODE_AHD;
-	vin_auto_det.ch = ch%4;
-	vin_auto_det.devnum = ch/4;
-	if (chip_nvp6158_id[0] == NVP6158C_R0_ID || chip_nvp6158_id[0] == NVP6158_R0_ID) {
-		video_input_auto_detect_set(&vin_auto_det);
-		sensor_print("nvp6158_set_chnmode = %d, ch = %d\n", tvin_info->input_fmt[ch], ch);
-
-		switch (tvin_info->input_fmt[ch]) {
-		case CVBS_H1440_PAL:
-			nvp6158_set_chnmode(ch, AHD20_SD_H1440_PAL);
-			sensor_print("nvp6158_set_chnmode(ch, AHD20_SD_H1440_PAL);\n");
-			break;
-		case CVBS_H1440_NTSC:
-			nvp6158_set_chnmode(ch, AHD20_SD_H1440_NT);
-			sensor_print("nvp6158_set_chnmode(ch, AHD20_SD_H1440_NT);\n");
-			break;
-		case AHD720P:
-			nvp6158_set_chnmode(ch, AHD20_720P_25P);
-			sensor_print("nvp6158_set_chnmode(ch, AHD20_720P_25P);\n");
-			break;
-		case AHD1080P:
-			nvp6158_set_chnmode(ch, AHD20_1080P_25P);
-			sensor_print("nvp6158_set_chnmode(ch, AHD20_1080P_25P);\n");
-			break;
-		default:
-			nvp6158_set_chnmode(ch, AHD20_720P_25P);
-			sensor_print("nvp6158_set_chnmode(ch, AHD20_720P_25P);\n");
-			break;
-		}
-
-	} else {
-		nvp6168_video_input_auto_detect_set(&vin_auto_det);
-		nvp6168_set_chnmode(ch, NC_VIVO_CH_FORMATDEF_UNKNOWN);
-	}
-
-	/* initialize Audio
-	 * recmaster, pbmaster, ch_num, samplerate, bits */
-	if (chip_nvp6158_id[0] == NVP6158C_R0_ID || chip_nvp6158_id[0] == NVP6158_R0_ID)
-		audio_init(1, 0, 16, 0, 0);
-	else
-		nvp6168_audio_init(1, 0, 16, 0, 0);
-
-#ifdef COLORBAR_EN
-	gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, 0x05);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x2c, 0x08);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, 0x06);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x2c, 0x08);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, 0x07);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x2c, 0x08);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, 0x08);
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x2c, 0x08);
-
-	gpio_i2c_write(nvp6158_iic_addr[0], 0xFF, 0x00);
-	/* gpio_i2c_write(nvp6158_iic_addr[0], 0x78, 0x42);//ch1:Blue */
-	/* ch2:Yellow ch3:Green ch4:Red */
-	/* gpio_i2c_write(nvp6158_iic_addr[0], 0x79, 0x76); */
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x78,
-				0xce); /* ch1:Blue  ch2:Yellow ch3:Green ch4:Red */
-	gpio_i2c_write(nvp6158_iic_addr[0], 0x79, 0xba);
-#endif
-	return 0;
-}
-
-
 /*******************************************************************************
 *	End of file
 *******************************************************************************/

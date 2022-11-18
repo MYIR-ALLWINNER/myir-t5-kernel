@@ -399,7 +399,8 @@
 			clocks        = <&clk_losc_out>;
 			bt_power      = "axp858-dcdc1";
 			bt_io_regulator = "axp858-cldo2";
-			bt_rst_n;
+			//bt_rst_n;
+			bt_rst_n = <&pio PE 13 1 0xffffffff 0xffffffff 0>;
 			status        = "okay";
 		};
 

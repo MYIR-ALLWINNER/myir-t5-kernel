@@ -774,7 +774,7 @@ static int camera_fmt_set(int mode)
 		fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YUV420M;
 		break;
 	case 2:
-		fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YUYV; //V4L2_PIX_FMT_YUV420;
+		fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_YUV420;
 		break;
 	case 3:
 		fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12;

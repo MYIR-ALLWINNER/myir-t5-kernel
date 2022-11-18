@@ -244,12 +244,7 @@ struct parser_fps_ds {
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 12, struct vin_reset_time)
 #define VIDIOC_SET_PARSER_FPS \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 13, struct parser_fps_ds)
-#define VIDIOC_SET_LOG_MASK \
-	_IOWR('V', BASE_VIDIOC_PRIVATE + 14, struct vin_debug_mask)
-#define VIDIOC_TVIN_INIT \
-	_IOWR('V', BASE_VIDIOC_PRIVATE + 15, struct tvin_init_info)
-#define VIDIOC_GET_TVIN_INP_FMT \
-	_IOWR('V', BASE_VIDIOC_PRIVATE + 16, struct tvin_ch_fmt)
+
 
 /*
  * Events

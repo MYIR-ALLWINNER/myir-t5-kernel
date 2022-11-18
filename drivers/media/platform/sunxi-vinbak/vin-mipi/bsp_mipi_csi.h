@@ -57,6 +57,4 @@ extern void bsp_mipi_csi_protocol_disable(unsigned int sel);
 extern void bsp_mipi_csi_set_para(unsigned int sel, struct mipi_para *para);
 extern void bsp_mipi_csi_set_fmt(unsigned int sel, unsigned int total_rx_ch,
 				 struct mipi_fmt_cfg *fmt);
-extern void bsp_mipi_csi_set_field(unsigned int sel, unsigned int total_rx_ch,
-				 struct mipi_fmt_cfg *fmt);
 #endif /*__MIPI__CSI__H__*/

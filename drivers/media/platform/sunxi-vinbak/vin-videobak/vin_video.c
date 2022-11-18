@@ -46,9 +46,6 @@
 #define VIN_MINOR_VERSION 0
 #define VIN_RELEASE       0
 
-#define CSI_VER_BIG 0x230
-#define CSI_VER_SMALL 0x200
-
 #define VIN_VERSION \
 		KERNEL_VERSION(VIN_MAJOR_VERSION, VIN_MINOR_VERSION, VIN_RELEASE)
 
@@ -155,53 +152,6 @@ static void __vin_pipeline_reset_handle(struct work_struct *work)
 	vin_warn("video%d pipeline reset end!\n", cap->vinc->id);
 }
 #endif
-
-/*make sure addr was update to register*/
-static int __check_bk_bufaddr(struct vin_core *vinc, struct vin_addr *paddr)
-{
-	unsigned int y, cb, cr;
-	/*unsigned int cnt = 0;*/
-
-	if (vinc->vid_cap.frame.fmt.fourcc == V4L2_PIX_FMT_YVU420) {
-		y = readl(vinc->base + 0x20) << 2;
-		cr = readl(vinc->base + 0x28) << 2;
-		cb = readl(vinc->base + 0x30) << 2;
-	} else {
-		y = readl(vinc->base + 0x20) << 2;
-		cb = readl(vinc->base + 0x28) << 2;
-		cr = readl(vinc->base + 0x30) << 2;
-	}
-
-	/*
-	while ((paddr->y != y || paddr->cb != cb || paddr->cr != cr) && (cnt < 2)) {
-		if(vinc->vid_cap.frame.fmt.fourcc == V4L2_PIX_FMT_YVU420) {
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_0_A, paddr->y);
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_2_A, paddr->cb);
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_1_A, paddr->cr);
-			y = readl(vinc->base + 0x20) << 2;
-			cr = readl(vinc->base + 0x28) << 2;
-			cb = readl(vinc->base + 0x30) << 2;
-
-		} else {
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_0_A, paddr->y);
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_1_A, paddr->cb);
-			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_2_A, paddr->cr);
-			y = readl(vinc->base + 0x20) << 2;
-			cb = readl(vinc->base + 0x28) << 2;
-			cr = readl(vinc->base + 0x30) << 2;
-		}
-		cnt++;
-	}
-	*/
-
-	if (paddr->y != y || paddr->cb != cb || paddr->cr != cr) {
-		vin_err("vinc%d cannot write and read the right addr to register!!\n", vinc->id);
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 
 /* The color format (colplanes, memplanes) must be already configured. */
 int vin_set_addr(struct vin_core *vinc, struct vb2_buffer *vb,
@@ -344,8 +294,6 @@ int vin_set_addr(struct vin_core *vinc, struct vb2_buffer *vb,
 			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_1_A, paddr->cb);
 			csic_dma_buffer_address(vinc->vipp_sel, CSI_BUF_2_A, paddr->cr);
 		}
-		if (__check_bk_bufaddr(vinc, paddr))
-			return -EINVAL;
 	}
 	return 0;
 }
@@ -798,15 +746,10 @@ static int vin_pipeline_try_format(struct vin_core *vinc,
 				continue;
 			}
 
-			if (vinc->id >= TVIN_SEPARATE)
-				sfmt.reserved[0] = vinc->id - TVIN_SEPARATE;
-			else
-				sfmt.reserved[0] = vinc->id;
-
 			sfmt.pad = 0;
 			ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &sfmt);
 			if (ret)
-				goto out;
+				return ret;
 
 			/*set isp input win size for isp server call sensor_req_cfg*/
 			if (sd->grp_id == VIN_GRP_ID_ISP)
@@ -822,10 +765,9 @@ static int vin_pipeline_try_format(struct vin_core *vinc,
 				sfmt.pad = me->num_pads - 1;
 				ret = v4l2_subdev_call(sd, pad, set_fmt, NULL, &sfmt);
 				if (ret)
-					goto out;
+					return ret;
 			}
 		}
-		media_entity_graph_walk_cleanup(&graph);
 
 		if (sfmt.format.code != tfmt->code)
 			continue;
@@ -841,9 +783,6 @@ static int vin_pipeline_try_format(struct vin_core *vinc,
 	*tfmt = sfmt.format;
 
 	return 0;
-out:
-	media_entity_graph_walk_cleanup(&graph);
-	return ret;
 }
 
 static int vin_pipeline_set_mbus_config(struct vin_core *vinc)
@@ -878,7 +817,7 @@ static int vin_pipeline_set_mbus_config(struct vin_core *vinc)
 			}
 		}
 	}
-	media_entity_graph_walk_cleanup(&graph);
+
 	csi = v4l2_get_subdevdata(pipe->sd[VIN_IND_CSI]);
 	vinc->total_rx_ch = csi->bus_info.ch_total_num;
 	vinc->vid_cap.frame.fmt.mbus_type = mcfg.type;
@@ -903,7 +842,6 @@ static int vin_pipeline_set_mbus_config(struct vin_core *vinc)
 #endif
 	return 0;
 out:
-	media_entity_graph_walk_cleanup(&graph);
 	return ret;
 
 }
@@ -2426,75 +2364,6 @@ static int vidioc_set_log_mask(struct file *file, struct v4l2_fh *fh,
 	return 0;
 }
 
-
-static int vidioc_get_sensor_inp_fmt(struct file *file,
-			struct v4l2_fh *fh, struct tvin_ch_fmt *fmt)
-{
-	struct vin_core *vinc = video_drvdata(file);
-	int ret;
-
-	ret = v4l2_subdev_call(vinc->vid_cap.pipe.sd[VIN_IND_SENSOR], core, ioctl,
-				GET_SENSOR_CH_INPUT_FMT, fmt);
-
-	if (ret != 0) {
-		vin_log(VIN_LOG_FMT, "%s:sensor failed to get sensor ch%d input fmt !\n",
-			__func__, fmt->input_fmt >> 12);
-		return ret;
-	}
-	vin_log(VIN_LOG_FMT, "[%s] get sensor input fmt = %d\n", __func__, fmt->input_fmt);
-	return ret;
-}
-
-static int  __tvin_info_check(struct tvin_init_info *info)
-{
-	int i;
-
-	if (info->work_mode >= Tvd_Input_Type_SIZE) {
-		vin_err("tvin not support this work mode\n");
-		return -1;
-	}
-	if (info->ch_id >= TVIN_CH_SIZE) {
-		vin_err("[%s]ch_id can not over %d\n", __func__, TVIN_CH_SIZE);
-		return -1;
-	}
-
-	if (info->input_fmt[info->ch_id] > INPUT_FMT_SIZE) {
-		vin_err("tvin not support ch%d fmt = %d\n", i, info->input_fmt[i]);
-		return -1;
-	}
-	return 0;
-}
-
-static int vidioc_tvin_init(struct file *file,
-			struct v4l2_fh *fh, struct tvin_init_info *info)
-{
-	struct vin_core *vinc = video_drvdata(file);
-	int ret = 0;
-
-	if (__tvin_info_check(info))
-		return -1;
-
-	vinc->tvin.work_mode = info->work_mode;
-	vinc->tvin.input_fmt = info->input_fmt[info->ch_id];
-	vinc->tvin.flag = true;
-
-	ret = v4l2_subdev_call(vinc->vid_cap.pipe.sd[VIN_IND_SENSOR], core, ioctl,
-			SENSOR_TVIN_INIT, info);
-	if (ret)
-		vin_err("sensor tvin init fail!\n");
-
-	ret = v4l2_subdev_call(vinc->vid_cap.pipe.sd[VIN_IND_CSI], core, ioctl,
-			PARSER_TVIN_INIT, info);
-	if (ret)
-		vin_err("csi tvin init fail!\n");
-
-	vin_log(VIN_LOG_FMT, "%s mode %d, fmt %d\n", __func__,
-				vinc->tvin.work_mode, vinc->tvin.input_fmt);
-
-	return ret;
-}
-
-
 static long vin_param_handler(struct file *file, void *priv,
 			      bool valid_prio, unsigned int cmd, void *param)
 {
@@ -2527,12 +2396,6 @@ static long vin_param_handler(struct file *file, void *priv,
 		break;
 	case VIDIOC_SET_LOG_MASK:
 		ret = vidioc_set_log_mask(file, fh, param);
-		break;
-	case VIDIOC_TVIN_INIT:
-		ret = vidioc_tvin_init(file, fh, param);
-		break;
-	case VIDIOC_GET_TVIN_INP_FMT:
-		ret = vidioc_get_sensor_inp_fmt(file, fh, param);
 		break;
 	default:
 		ret = -ENOTTY;
@@ -3519,9 +3382,9 @@ int vin_init_controls(struct v4l2_ctrl_handler *hdl, struct vin_vid_cap *cap)
 
 	v4l2_ctrl_handler_init(hdl, 40 + ARRAY_SIZE(custom_ctrls)
 		+ ARRAY_SIZE(ae_win_ctrls) + ARRAY_SIZE(af_win_ctrls));
-	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_BRIGHTNESS, 0, 0xffff, 1, 0);
-	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_CONTRAST, 0, 0xffff, 1, 0);
-	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_SATURATION, 0, 0xffff, 1, 0);
+	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_BRIGHTNESS, -128, 128, 1, 0);
+	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_CONTRAST, -128, 128, 1, 0);
+	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_SATURATION, -256, 512, 1, 0);
 	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_HUE, -180, 180, 1, 0);
 	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
 	ctrl = v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_EXPOSURE, 1, 65536 * 16, 1, 1);
@@ -3586,7 +3449,6 @@ int vin_init_controls(struct v4l2_ctrl_handler *hdl, struct vin_vid_cap *cap)
 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
 	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_AUTO_FOCUS_START, 0, 0, 0, 0);
 	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_AUTO_FOCUS_STOP, 0, 0, 0, 0);
-	v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_COLORFX_CBCR, 0, 0xfffff, 1, 0);
 	ctrl = v4l2_ctrl_new_std(hdl, &vin_ctrl_ops, V4L2_CID_AUTO_FOCUS_STATUS, 0, 7, 0, 0);
 	if (ctrl != NULL)
 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
@@ -3714,36 +3576,21 @@ static int vin_video_core_s_power(struct v4l2_subdev *sd, int on)
 static int vin_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct vin_core *vinc = v4l2_get_subdevdata(sd);
-	struct vin_md *vind = dev_get_drvdata(vinc->v4l2_dev->dev);
 	struct vin_vid_cap *cap = &vinc->vid_cap;
 	struct csic_dma_cfg cfg;
 	struct csic_dma_flip flip;
 	struct dma_output_size size;
 	struct dma_buf_len buf_len;
 	struct dma_flip_size flip_size;
-	struct sensor_output_fmt sensor_fmt;
 	int flag = 0;
 	int flip_mul = 2;
-	int field;
-	int csi_ver_big, csi_ver_small;
-
-	csi_ver_big = vind->csic_ver.ver_big;
-	csi_ver_small = vind->csic_ver.ver_small;
-
-	if (csi_ver_big == CSI_VER_BIG && csi_ver_small == CSI_VER_SMALL)
-		field = (cap->frame.fmt.field >> (vinc->isp_tx_ch * 8)) & 0xff;
-	else
-		field = cap->frame.fmt.field & 0xff;
-
-	if (field == 0)
-		field = cap->frame.fmt.field & 0xff;
 
 	if (enable) {
 		memset(&cfg, 0, sizeof(cfg));
 		memset(&size, 0, sizeof(size));
 		memset(&buf_len, 0, sizeof(buf_len));
 
-		switch (field) {
+		switch (cap->frame.fmt.field) {
 		case V4L2_FIELD_ANY:
 		case V4L2_FIELD_NONE:
 			cfg.field = FIELD_EITHER;
@@ -3763,17 +3610,6 @@ static int vin_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 		default:
 			cfg.field = FIELD_EITHER;
 			break;
-		}
-
-		if (vinc->tvin.flag) {
-			if (vinc->id < TVIN_SEPARATE)
-				sensor_fmt.ch_id = vinc->id;
-			else
-				sensor_fmt.ch_id = vinc->id - TVIN_SEPARATE;
-
-			if (!v4l2_subdev_call(cap->pipe.sd[VIN_IND_SENSOR],
-					core, ioctl, GET_SENSOR_CH_OUTPUT_FMT, &sensor_fmt))
-				flag = sensor_fmt.field;
 		}
 
 		switch (cap->frame.fmt.fourcc) {
@@ -3865,6 +3701,7 @@ static int vin_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 		}
 
 		cfg.ds = vinc->fps_ds;
+
 		csic_dma_config(vinc->vipp_sel, &cfg);
 		size.hor_len = vinc->isp_dbg.debug_en ? 0 : cap->frame.o_width;
 		size.ver_len = vinc->isp_dbg.debug_en ? 0 : cap->frame.o_height;
@@ -3935,7 +3772,6 @@ static int vin_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 			DMA_INT_CAPTURE_DONE | DMA_INT_STORED_FRM_CNT | DMA_INT_FRM_LOST);
 #endif
 	} else {
-		vinc->tvin.flag = false;
 		csic_dma_top_disable(vinc->vipp_sel);
 		csic_dma_int_disable(vinc->vipp_sel, DMA_INT_ALL);
 		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);

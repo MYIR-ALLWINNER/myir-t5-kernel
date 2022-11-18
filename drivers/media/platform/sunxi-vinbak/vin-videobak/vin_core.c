@@ -864,86 +864,6 @@ static void __vin_ptn_update(struct vin_core *vinc)
 }
 #endif
 
-static void __sunxi_bk_reset(struct vin_core *vinc)
-{
-#if 0
-	struct vin_core *vincc = NULL;
-	struct vin_vid_cap *cap = &vinc->vid_cap;
-	struct csi_dev *csi = container_of(cap->pipe.sd[VIN_IND_CSI], struct csi_dev, subdev);
-	struct vin_md *vind = dev_get_drvdata(csi->subdev.v4l2_dev->dev);
-	struct prs_cap_mode mode = {.mode = VCAP};
-	bool flags = 1;
-	int i = 0;
-
-	if (vin_streaming(cap) == 0) {
-		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);
-		return;
-	}
-
-	vin_print("video%d reset!!!\n", vinc->id);
-
-	/*****************stop*******************/
-	for (i = 0; i < VIN_MAX_DEV; i++) {
-		if (vind->vinc[i] == NULL)
-			continue;
-		if (!vin_streaming(&vind->vinc[i]->vid_cap))
-			continue;
-
-		if (vind->vinc[i]->csi_sel == csi->id) {
-			vincc = vind->vinc[i];
-
-			if (flags) {
-				csic_prs_capture_stop(vincc->csi_sel);
-				csic_prs_disable(vincc->csi_sel);
-
-				flags = 0;
-			}
-			csic_dma_int_clear_status(vincc->vipp_sel, DMA_INT_ALL);
-			csic_dma_top_disable(vincc->vipp_sel);
-		}
-	}
-
-	/*****************start*******************/
-	flags = 1;
-	for (i = 0; i < VIN_MAX_DEV; i++) {
-		if (vind->vinc[i] == NULL)
-			continue;
-		if (!vin_streaming(&vind->vinc[i]->vid_cap))
-			continue;
-
-		if (vind->vinc[i]->csi_sel == csi->id) {
-			vincc = vind->vinc[i];
-
-			csic_dma_top_enable(vincc->vipp_sel);
-			vincc->vin_status.frame_cnt = 0;
-			vincc->vin_status.lost_cnt = 0;
-
-			if (flags) {
-				csic_prs_enable(vincc->csi_sel);
-
-				csic_prs_capture_start(vincc->csi_sel, 1, &mode);
-				flags = 0;
-			}
-		}
-	}
-#endif
-	struct vin_vid_cap *cap = &vinc->vid_cap;
-
-	if (vin_streaming(cap) == 0) {
-		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);
-		return;
-	}
-
-	vin_print("video%d reset!!!\n", vinc->id);
-
-	csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);
-	csic_dma_top_disable(vinc->vipp_sel);
-
-	csic_dma_top_enable(vinc->vipp_sel);
-	vinc->vin_status.frame_cnt = 0;
-	vinc->vin_status.frame_cnt = 0;
-}
-
 void vin_vsync_isr(struct vin_vid_cap *cap)
 {
 	struct v4l2_event event;
@@ -1009,8 +929,6 @@ static irqreturn_t vin_isr(int irq, void *priv)
 			vinc->vin_status.err_cnt++;
 			vin_err("video%d hblank overflow, frame count is %d\n", vinc->id, vinc->vin_status.frame_cnt);
 		}
-		cap->drop_frame = 1;
-		__sunxi_bk_reset(vinc);
 	}
 
 	if (status.fbc_ovhd_wrddr_full) {
@@ -1027,17 +945,10 @@ static irqreturn_t vin_isr(int irq, void *priv)
 
 #ifndef BUF_AUTO_UPDATE
 	if (status.vsync_trig) {
+		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_VSYNC_TRIG);
 		vinc->vin_status.frame_cnt++;
 		csic_prs_input_para_get(vinc->csi_sel, 0, &vinc->vin_status.prs_in);
 		vin_vsync_isr(cap);
-
-		if (cap->drop_frame) {
-			cap->drop_frame = 0;
-			vinc->vin_status.lost_cnt++;
-			csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_VSYNC_TRIG);
-			goto unlock;
-		}
-
 		if (vinc->large_image == 2) {
 			size.hor_len = cap->frame.o_width / 2;
 			size.ver_len = cap->frame.o_height;
@@ -1048,11 +959,10 @@ static irqreturn_t vin_isr(int irq, void *priv)
 			csic_dma_output_size_cfg(vinc->vipp_sel, &size);
 		}
 		if (cap->capture_mode != V4L2_MODE_IMAGE && !display_sync) {
-			if (cap->first_flag && vinc->large_image != 2 && cap->bufaddr_update) {
+			if (cap->first_flag && vinc->large_image != 2) {
 				if ((&cap->vidq_active) == cap->vidq_active.next->next->next) {
 					vin_log(VIN_LOG_VIDEO, "Only two buffer left for video%d\n", vinc->id);
 					vinc->vin_status.lost_cnt++;
-					csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_VSYNC_TRIG);
 					goto unlock;
 				}
 				buf = list_entry(cap->vidq_active.next, struct vin_buffer, list);
@@ -1069,7 +979,6 @@ static irqreturn_t vin_isr(int irq, void *priv)
 			}
 			if (list_empty(&cap->vidq_active) || cap->vidq_active.next->next == &cap->vidq_active) {
 				vin_log(VIN_LOG_VIDEO, "No active queue to serve\n");
-				csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_VSYNC_TRIG);
 				goto unlock;
 			}
 
@@ -1085,11 +994,7 @@ static irqreturn_t vin_isr(int irq, void *priv)
 			}
 #else
 			buf = list_entry(cap->vidq_active.next->next, struct vin_buffer, list);
-			if (vin_set_addr(vinc, &buf->vb.vb2_buf, &vinc->vid_cap.frame, &vinc->vid_cap.frame.paddr)) {
-				cap->bufaddr_update = 0;
-				vinc->vin_status.lost_cnt++;
-			} else
-				cap->bufaddr_update = 1;
+			vin_set_addr(vinc, &buf->vb.vb2_buf, &vinc->vid_cap.frame, &vinc->vid_cap.frame.paddr);
 #endif
 		}
 #ifdef CONFIG_DISPPLAY_SYNC
@@ -1106,7 +1011,6 @@ static irqreturn_t vin_isr(int irq, void *priv)
 			cap->first_flag++;
 			vin_log(VIN_LOG_VIDEO, "video%d first frame!\n", vinc->id);
 		}
-		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_VSYNC_TRIG);
 	}
 
 	/*when open isp debug line count interrupt would not come!*/
@@ -1242,6 +1146,7 @@ static int vin_irq_request(struct vin_core *vinc, int i)
 	int ret;
 	struct device_node *np = vinc->pdev->dev.of_node;
 	/*get irq resource */
+
 	vinc->irq = irq_of_parse_and_map(np, i);
 	if (vinc->irq <= 0) {
 		vin_err("failed to get CSI DMA IRQ resource\n");
@@ -1277,10 +1182,6 @@ int vin_core_suspend(struct device *d)
 		return 0;
 	if (test_and_set_bit(VIN_LPM, &vinc->vid_cap.state))
 		return 0;
-
-#ifdef CONFIG_CCI_ALWAYS_ON
-	csi_cci_exit_helper(1);
-#endif
 
 	if (vin_busy(cap)) {
 #if defined CONFIG_ARCH_SUN8IW16P1 || defined CONFIG_ARCH_SUN8IW19P1
@@ -1336,10 +1237,6 @@ int vin_core_resume(struct device *d)
 		vin_print("VIN not suspend!\n");
 		return 0;
 	}
-
-#ifdef CONFIG_CCI_ALWAYS_ON
-	csi_cci_init_helper(1);
-#endif
 
 	if (vin_busy(cap)) {
 #if defined CONFIG_ARCH_SUN8IW16P1 || defined CONFIG_ARCH_SUN8IW19P1

@@ -81,7 +81,7 @@ int vin_set_pmu_channel(struct v4l2_subdev *sd, enum pmic_channel pmic_ch,
 #ifndef FPGA_VER
 	struct modules_config *modules = sd_to_modules(sd);
 	static int def_vol[MAX_POW_NUM] = {3300000, 3300000, 1800000,
-					3300000, 3300000, 3300000, 3300000};
+					3300000, 3300000, 3300000};
 	struct vin_power *power = NULL;
 
 	if (modules == NULL)
@@ -171,11 +171,6 @@ int vin_set_mclk(struct v4l2_subdev *sd, enum on_off on_off)
 		return 0;
 	else if (!on_off && (mclk->use_count == 0 || --mclk->use_count > 0))
 		return 0;
-
-#ifdef CONFIG_CCI_ALWAYS_ON
-	if (!on_off)
-		return 0;
-#endif
 
 	switch (on_off) {
 	case ON:

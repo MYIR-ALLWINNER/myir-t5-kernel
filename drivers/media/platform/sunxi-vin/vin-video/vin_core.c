@@ -922,12 +922,12 @@ static irqreturn_t vin_isr(int irq, void *priv)
 		if ((status.buf_0_overflow) || (status.buf_1_overflow) || (status.buf_2_overflow)) {
 			csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_BUF_0_OVERFLOW | DMA_INT_BUF_1_OVERFLOW | DMA_INT_BUF_2_OVERFLOW);
 			vinc->vin_status.err_cnt++;
-			vin_err("video%d fifo overflow, frame count is %d\n", vinc->id, vinc->vin_status.frame_cnt);
+			vin_err("video%d fifo overflow\n", vinc->id);
 		}
 		if (status.hblank_overflow) {
 			csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_HBLANK_OVERFLOW);
 			vinc->vin_status.err_cnt++;
-			vin_err("video%d hblank overflow, frame count is %d\n", vinc->id, vinc->vin_status.frame_cnt);
+			vin_err("video%d hblank overflow\n", vinc->id);
 		}
 	}
 
@@ -1146,7 +1146,6 @@ static int vin_irq_request(struct vin_core *vinc, int i)
 	int ret;
 	struct device_node *np = vinc->pdev->dev.of_node;
 	/*get irq resource */
-
 	vinc->irq = irq_of_parse_and_map(np, i);
 	if (vinc->irq <= 0) {
 		vin_err("failed to get CSI DMA IRQ resource\n");

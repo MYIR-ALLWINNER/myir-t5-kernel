@@ -398,11 +398,6 @@ static int vin_md_clk_enable(struct vin_md *vind)
 
 static void vin_md_clk_disable(struct vin_md *vind)
 {
-
-#ifdef CONFIG_CCI_ALWAYS_ON
-	return;
-#endif
-
 #ifndef FPGA_VER
 	if (vind->clk[VIN_TOP_CLK].clock) {
 		clk_disable_unprepare(vind->clk[VIN_TOP_CLK].clock);
@@ -541,13 +536,9 @@ static void vin_set_cci_power(struct vin_md *vind, int on)
 		for (i = 0; i < VIN_MAX_CSI; i++)
 			csic_ccu_mcsi_parser_clk_en(i, on);
 	} else {
-#ifdef CONFIG_CCI_ALWAYS_ON
-		vin_md_set_power(vind, on);
-#else
 		for (i = 0; i < VIN_MAX_CSI; i++)
 			csic_ccu_mcsi_parser_clk_en(i, on);
 		vin_md_set_power(vind, on);
-#endif
 	}
 #endif
 }
@@ -676,14 +667,9 @@ static int vin_pipeline_s_power(struct vin_pipeline *p, bool on)
 			VIN_IND_ISP, VIN_IND_SCALER},
 	};
 	int i, ret = 0;
-	unsigned int idx;
 
 	for (i = 0; i < VIN_IND_TDM_RX; i++) {
-#ifdef CONFIG_CCI_ALWAYS_ON
-		if (!on && i < VIN_IND_CSI)
-			continue;
-#endif
-		idx = seq[on][i];
+		unsigned int idx = seq[on][i];
 		if (!p->sd[idx] || !p->sd[idx]->entity.graph_obj.mdev)
 			continue;
 		ret = __vin_subdev_set_power(p->sd[idx], on);
@@ -1726,9 +1712,7 @@ static int vin_probe(struct platform_device *pdev)
 	}
 
 	vin_set_cci_power(vind, 0);
-#ifndef CONFIG_CCI_ALWAYS_ON
 	vin_md_clk_disable(vind);
-#endif
 
 	mutex_lock(&vind->media_dev.graph_mutex);
 	ret = vin_create_media_links(vind);

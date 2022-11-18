@@ -74,12 +74,6 @@ struct vin_ptn_cfg {
 	struct vin_mm ptn_buf;
 };
 
-struct vinc_tvin {
-	bool flag;
-	__u32 input_fmt;
-	__u16 work_mode;
-};
-
 struct vin_core {
 	unsigned char is_empty;
 	unsigned char id;
@@ -114,7 +108,6 @@ struct vin_core {
 	struct timer_list timer_for_reset;
 	struct vin_ptn_cfg ptn_cfg;
 	struct vin_vid_cap vid_cap;
-	struct vinc_tvin tvin;
 };
 
 static inline struct sensor_instance *get_valid_sensor(struct vin_core *vinc)

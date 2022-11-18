@@ -163,8 +163,6 @@ struct vin_vid_cap {
 	/*working state */
 	bool registered;
 	bool special_active;
-	bool bufaddr_update;
-	bool drop_frame;
 	struct mutex lock;
 	unsigned int first_flag; /* indicate the first time triggering irq */
 	struct timeval ts;

@@ -119,38 +119,6 @@ void csic_prs_ncsi_if_cfg(unsigned int sel, struct prs_ncsi_if_cfg *if_cfg)
 		if_cfg->ddr_sample << PRS_NCSIC_IF_DDR_SAMPLE_MODE);
 }
 
-void csic_prs_ncsi_set_field(unsigned int sel, unsigned int ch_total_num, unsigned int mf_field)
-{
-	int j;
-	int ch0_field, ch0_type;
-
-	ch0_field = mf_field & 0xff;
-	if (ch0_field == V4L2_FIELD_NONE)
-		ch0_type = PROGRESSED;
-	else
-		ch0_type = INTERLACE;
-
-	for (j = 0; j < ch_total_num; j++) {
-		switch ((mf_field >> (j * 8)) & 0xff) {
-		case V4L2_FIELD_NONE:
-			vin_reg_clr_set(csic_prs_base[sel] + PRS_NCSIC_IF_CFG_REG_OFF,
-				PRS_NCSIC_IF_SRC_TYPES_MASK << j, PROGRESSED << (PRS_NCSIC_IF_SRC_TYPES + j));
-			break;
-		case V4L2_FIELD_TOP:
-		case V4L2_FIELD_BOTTOM:
-		case V4L2_FIELD_INTERLACED:
-			vin_reg_clr_set(csic_prs_base[sel] + PRS_NCSIC_IF_CFG_REG_OFF,
-				PRS_NCSIC_IF_SRC_TYPES_MASK << j, INTERLACE << (PRS_NCSIC_IF_SRC_TYPES + j));
-			break;
-		default:
-			vin_reg_clr_set(csic_prs_base[sel] + PRS_NCSIC_IF_CFG_REG_OFF,
-				PRS_NCSIC_IF_SRC_TYPES_MASK << j, ch0_type << (PRS_NCSIC_IF_SRC_TYPES + j));
-			break;
-		}
-	}
-
-}
-
 void csic_prs_mcsi_if_cfg(unsigned int sel, struct prs_mcsi_if_cfg *if_cfg)
 {
 	vin_reg_clr_set(csic_prs_base[sel] + PRS_MCSIC_IF_CFG_REG_OFF,

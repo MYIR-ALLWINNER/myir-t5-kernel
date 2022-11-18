@@ -1660,32 +1660,6 @@ static int vidioc_overlay(struct file *file, void *__fh, unsigned int on)
 	return ret;
 }
 
-static int vidioc_vb2_ioctl_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
-{
-	struct vin_core *vinc = video_drvdata(file);
-	struct vin_vid_cap *cap = &vinc->vid_cap;
-	struct vin_buffer *buf;
-	struct list_head *buf_next;
-	unsigned long flags;
-
-	spin_lock_irqsave(&cap->slock, flags);
-
-	buf_next = cap->vidq_active.next;
-	while (buf_next !=  &cap->vidq_active) {
-		buf = list_entry(buf_next, struct vin_buffer, list);
-		if (buf->vb.vb2_buf.index == p->index) {
-			vin_err("%s:video%d: buffer%d is used,cannot be qbuf!!\n", __func__, vinc->id, buf->vb.vb2_buf.index);
-			spin_unlock_irqrestore(&cap->slock, flags);
-			return -EBUSY;
-		}
-		buf_next = buf_next->next;
-	}
-
-	spin_unlock_irqrestore(&cap->slock, flags);
-
-	return vb2_ioctl_qbuf(file, priv, p);
-}
-
 void vin_pipeline_reset(unsigned long data)
 {
 #ifdef CONFIG_PIPELINE_RESET
@@ -1999,10 +1973,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
 	sunxi_isp_sensor_type(cap->pipe.sd[VIN_IND_ISP], inst->is_isp_used);
 	vinc->support_raw = inst->is_isp_used;
 
-	mutex_lock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
 	ret = vin_pipeline_call(vinc, open, &cap->pipe, &cap->vdev.entity, true);
-	mutex_unlock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
-
 	if (ret < 0) {
 		vin_err("vin pipeline open failed (%d)!\n", ret);
 		return ret;
@@ -2328,42 +2299,6 @@ static int vidioc_set_parser_fps(struct file *file, struct v4l2_fh *fh,
 	return 0;
 }
 
-static int vidioc_set_log_mask(struct file *file, struct v4l2_fh *fh,
-			struct vin_debug_mask *vin_debug_mask)
-{
-	struct vin_core *vinc = video_drvdata(file);
-	struct vin_vid_cap *cap = &vinc->vid_cap;
-	struct vin_buffer *buf;
-	struct list_head *buf_next;
-	unsigned long flags;
-
-	spin_lock_irqsave(&cap->slock, flags);
-	buf_next = cap->vidq_active.next;
-	while (buf_next !=  &cap->vidq_active) {
-		buf = list_entry(buf_next, struct vin_buffer, list);
-		vin_print("%s:buffer%d stay in active queue!!\n", __func__, buf->vb.vb2_buf.index);
-		buf_next = buf_next->next;
-	}
-
-	/*if (buf) {
-		struct vb2_buffer *vb;
-		struct vb2_queue *q;
-
-		q = buf->vb.vb2_buf.vb2_queue;
-		buf_next = q->done_list.next;
-		while (buf_next !=  &q->done_list) {
-			vb = list_entry(buf_next, struct vb2_buffer, done_entry);
-			vin_print("%s:buffer%d stay in done queue!!\n", __func__, vb->index);
-			buf_next = buf_next->next;
-		}
-	}*/
-	spin_unlock_irqrestore(&cap->slock, flags);
-
-	vin_log_mask = vin_debug_mask->log_mask;
-	vin_print("%s: vin_log_mask set to 0x%x\n", __func__, vin_log_mask);
-	return 0;
-}
-
 static long vin_param_handler(struct file *file, void *priv,
 			      bool valid_prio, unsigned int cmd, void *param)
 {
@@ -2393,9 +2328,6 @@ static long vin_param_handler(struct file *file, void *priv,
 		break;
 	case VIDIOC_SET_PARSER_FPS:
 		ret = vidioc_set_parser_fps(file, fh, param);
-		break;
-	case VIDIOC_SET_LOG_MASK:
-		ret = vidioc_set_log_mask(file, fh, param);
 		break;
 	default:
 		ret = -ENOTTY;
@@ -2453,14 +2385,8 @@ static int vin_close(struct file *file)
 		vin_timer_del(vinc);
 
 	mutex_lock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
-	if (!cap->pipe.sd[VIN_IND_SENSOR] ||
-		!cap->pipe.sd[VIN_IND_SENSOR]->entity.use_count) {
-		v4l2_fh_release(file);
-		set_bit(VIN_LPM, &cap->state);
-		clear_bit(VIN_BUSY, &cap->state);
-		if (cap->pipe.sd[VIN_IND_SENSOR])
-			vin_err("%s is not used, video%d cannot be close!\n",
-				cap->pipe.sd[VIN_IND_SENSOR]->name, vinc->id);
+	if (!cap->pipe.sd[VIN_IND_SENSOR]->entity.use_count) {
+		vin_err("%s is not used, video%d cannot be close!\n", cap->pipe.sd[VIN_IND_SENSOR]->name, vinc->id);
 		mutex_unlock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
 		return -1;
 	}
@@ -2876,7 +2802,7 @@ static const struct v4l2_ioctl_ops vin_ioctl_ops = {
 	.vidioc_overlay = vidioc_overlay,
 	.vidioc_reqbufs = vb2_ioctl_reqbufs,
 	.vidioc_querybuf = vb2_ioctl_querybuf,
-	.vidioc_qbuf = vidioc_vb2_ioctl_qbuf,
+	.vidioc_qbuf = vb2_ioctl_qbuf,
 	.vidioc_dqbuf = vb2_ioctl_dqbuf,
 	.vidioc_expbuf = vb2_ioctl_expbuf,
 	.vidioc_enum_input = vidioc_enum_input,
@@ -2958,10 +2884,7 @@ int vin_s_input_special(int id, int i)
 	sunxi_isp_sensor_type(cap->pipe.sd[VIN_IND_ISP], inst->is_isp_used);
 	vinc->support_raw = inst->is_isp_used;
 
-	mutex_lock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
 	ret = vin_pipeline_call(vinc, open, &cap->pipe, &cap->vdev.entity, true);
-	mutex_unlock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
-
 	if (ret < 0) {
 		vin_err("vin pipeline open failed (%d)!\n", ret);
 		return ret;
@@ -3040,9 +2963,8 @@ int vin_close_special(int id)
 
 	/*software*/
 	clear_bit(VIN_BUSY, &cap->state);
-	__csi_isp_setup_link(vinc, 0);
-	__vin_sensor_setup_link(module, valid_idx, 0);
 	mutex_unlock(&cap->vdev.entity.graph_obj.mdev->graph_mutex);
+	__vin_sensor_setup_link(module, valid_idx, 0);
 #ifdef CONFIG_DEVFREQ_DRAM_FREQ_WITH_SOFT_NOTIFY
 	dramfreq_master_access(MASTER_CSI, false);
 #endif
@@ -3754,19 +3676,15 @@ static int vin_subdev_s_stream(struct v4l2_subdev *sd, int enable)
 		/*csic_dma_line_cnt(vinc->vipp_sel, cap->frame.o_height / 16 * 12);*/
 		csic_frame_cnt_enable(vinc->vipp_sel);
 
-#ifndef BUF_AUTO_UPDATE
-		vin_set_next_buf_addr(vinc);
 		csic_dma_top_enable(vinc->vipp_sel);
+		vin_set_next_buf_addr(vinc);
 
 		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);
+#ifndef BUF_AUTO_UPDATE
 		csic_dma_int_enable(vinc->vipp_sel, DMA_INT_BUF_0_OVERFLOW | DMA_INT_BUF_1_OVERFLOW |
 			DMA_INT_BUF_2_OVERFLOW | DMA_INT_HBLANK_OVERFLOW | DMA_INT_VSYNC_TRIG |
 			DMA_INT_CAPTURE_DONE | DMA_INT_FRAME_DONE);
 #else
-		csic_dma_top_enable(vinc->vipp_sel);
-		vin_set_next_buf_addr(vinc);
-
-		csic_dma_int_clear_status(vinc->vipp_sel, DMA_INT_ALL);
 		csic_dma_int_enable(vinc->vipp_sel, DMA_INT_BUF_0_OVERFLOW | DMA_INT_BUF_1_OVERFLOW |
 			DMA_INT_BUF_2_OVERFLOW | DMA_INT_HBLANK_OVERFLOW | DMA_INT_VSYNC_TRIG |
 			DMA_INT_CAPTURE_DONE | DMA_INT_STORED_FRM_CNT | DMA_INT_FRM_LOST);

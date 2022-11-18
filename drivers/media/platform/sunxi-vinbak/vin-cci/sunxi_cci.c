@@ -137,13 +137,6 @@ void cci_s_power(unsigned int sel, int on_off)
 	}
 	vin_log(VIN_LOG_CCI, "%s, %d!\n", __func__, on_off);
 
-#ifdef CONFIG_CCI_ALWAYS_ON
-		if (!on_off)
-			return ;
-		else
-			cci->use_cnt = 0;
-#endif
-
 	if (on_off && (cci->use_cnt)++ > 0)
 		return;
 	else if (!on_off && (cci->use_cnt == 0 || --(cci->use_cnt) > 0))

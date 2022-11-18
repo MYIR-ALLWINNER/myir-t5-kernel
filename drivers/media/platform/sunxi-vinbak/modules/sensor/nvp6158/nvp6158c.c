@@ -36,7 +36,6 @@ MODULE_LICENSE("GPL");
 #define CLK_POL V4L2_MBUS_PCLK_SAMPLE_FALLING
 #define DOUBLE_CLK_POL (V4L2_MBUS_PCLK_SAMPLE_FALLING | V4L2_MBUS_PCLK_SAMPLE_RISING)
 #define V4L2_IDENT_SENSOR 0x00a0
-#define GET_BIT(x, bit) ((x & (1 << bit)) >> bit)
 
 /*
  * Our nominal (default) frame rate.
@@ -77,7 +76,6 @@ static int sensor_power(struct v4l2_subdev *sd, int on)
 		vin_gpio_set_status(sd, PWDN, CSI_GPIO_HIGH);
 		vin_set_mclk_freq(sd, MCLK);
 		vin_set_mclk(sd, ON);
-		vin_set_pmu_channel(sd, RESERVEVDD, ON);
 		vin_set_pmu_channel(sd, CAMERAVDD, ON);
 		vin_set_pmu_channel(sd, IOVDD, ON);
 		vin_set_pmu_channel(sd, DVDD, ON);
@@ -93,7 +91,6 @@ static int sensor_power(struct v4l2_subdev *sd, int on)
 		cci_lock(sd);
 		vin_set_mclk(sd, OFF);
 		vin_gpio_set_status(sd, RESET, CSI_GPIO_HIGH);
-		vin_set_pmu_channel(sd, RESERVEVDD, OFF);
 		vin_set_pmu_channel(sd, CAMERAVDD, OFF);
 		vin_set_pmu_channel(sd, IOVDD, OFF);
 		vin_set_pmu_channel(sd, DVDD, OFF);
@@ -124,7 +121,7 @@ static int sensor_detect(struct v4l2_subdev *sd)
 	data_type rdval;
 
 	rdval = check_nvp6158_id(0x62);
-	sensor_print("sensor id = 0x%x\n", rdval);
+	sensor_dbg("sensor id = 0x%x\n", rdval);
 
 	return 0;
 }
@@ -156,97 +153,6 @@ static int sensor_init(struct v4l2_subdev *sd, u32 val)
 	return 0;
 }
 
-static int sensor_g_tvin_inp_fmt(struct v4l2_subdev *sd,
-				struct tvin_ch_fmt *fmt)
-{
-	int channel = fmt->channel;
-	int i;
-	data_type rdval;
-
-	rdval = check_nvp6158_novid(0x62);
-
-	for (i = 0; i < 4; i++) {
-		if (GET_BIT(channel, i)) {
-			sensor_print("want ch%d status.\n", i);
-			break;
-		}
-	}
-
-	if (GET_BIT(rdval, i)) {
-		fmt->lock = 0;  // no video
-		sensor_print("ch%d is NO video input.", i);
-	} else {
-		fmt->lock = 1;  // on video
-		sensor_print("ch%d is ON video input.", i);
-	}
-
-	return 0;
-}
-
-static int sensor_tvin_init(struct v4l2_subdev *sd,
-		struct tvin_init_info *tvin_info)
-{
-	struct sensor_info *info = to_state(sd);
-	__u32 *sensor_fmt = info->tvin.tvin_info.input_fmt;
-	__u32 ch_id = tvin_info->ch_id;
-
-	sensor_print("set ch%d fmt as %d\n",
-			ch_id, tvin_info->input_fmt[ch_id]);
-	sensor_fmt[ch_id] = tvin_info->input_fmt[ch_id];
-	info->tvin.tvin_info.ch_id = ch_id;
-
-	if (sd->entity.stream_count != 0) {
-		nvp6158_init_ch_hardware(&info->tvin.tvin_info);
-		sensor_print("sensor_tvin_init nvp6158_init_ch_hardware\n");
-	}
-	info->tvin.flag = true;
-
-	return 0;
-}
-
-static int sensor_get_output_fmt(struct v4l2_subdev *sd,
-								struct sensor_output_fmt *fmt)
-{
-	struct sensor_info *info = to_state(sd);
-	__u32 *sensor_fmt = info->tvin.tvin_info.input_fmt;
-	__u32 *out_feld = &fmt->field;
-	__u32 ch_id = fmt->ch_id;
-
-	switch (sensor_fmt[ch_id]) {
-	case CVBS_PAL:
-	case CVBS_NTSC:
-	case YCBCR_480I:
-	case YCBCR_576I:
-		/*Interlace ouput set out_feld as 1*/
-		*out_feld = 1;
-		break;
-	case YCBCR_576P:
-	case YCBCR_480P:
-		/*Progressive ouput set out_feld as 0*/
-		*out_feld = 0;
-		break;
-	case CVBS_H1440_PAL:
-		*out_feld = 1;
-		sensor_print("out_feld = 1\n");
-		break;
-	case CVBS_H1440_NTSC:
-		*out_feld = 1;
-		sensor_print("out_feld = 1\n");
-		break;
-	case AHD720P:
-		*out_feld = 0;
-		sensor_print("out_feld = 0\n");
-		break;
-	case AHD1080P:
-		*out_feld = 0;
-		sensor_print("out_feld = 0\n");
-		break;
-	default:
-		return -EINVAL;
-	}
-	return 0;
-}
-
 static long sensor_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 {
 	int ret = 0;
@@ -268,82 +174,9 @@ static long sensor_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 	case VIDIOC_VIN_SENSOR_CFG_REQ:
 		sensor_cfg_req(sd, (struct sensor_config *)arg);
 		break;
-	case GET_SENSOR_CH_INPUT_FMT:
-		sensor_g_tvin_inp_fmt(sd, (struct tvin_ch_fmt *)arg);
-		break;
-	case SENSOR_TVIN_INIT:
-		ret = sensor_tvin_init(sd, (struct tvin_init_info *)arg);
-		break;
-	case GET_SENSOR_CH_OUTPUT_FMT:
-		ret = sensor_get_output_fmt(sd, (struct sensor_output_fmt *)arg);
-		break;
 	default:
 		return -EINVAL;
 	}
-	return ret;
-}
-
-static void nvp6158c_set_input_size(struct sensor_info *info,
-		struct v4l2_subdev_format *fmt, int ch_id)
-{
-		struct tvin_init_info *tvin_info = &info->tvin.tvin_info;
-
-		switch (tvin_info->input_fmt[ch_id]) {
-		case AHD720P:
-			fmt->format.width = 1280;
-			fmt->format.height = 720;
-			break;
-		case AHD1080P:
-			fmt->format.width = 1920;
-			fmt->format.height = 1080;
-			break;
-		case CVBS_H1440_PAL:
-			fmt->format.width = 1440;
-			fmt->format.height = 576;
-			break;
-		case CVBS_H1440_NTSC:
-			fmt->format.width = 1440;
-			fmt->format.height = 480;
-			break;
-		default:
-			break;
-		}
-}
-
-int nvp6158c_sensor_set_fmt(struct v4l2_subdev *sd,
-			struct v4l2_subdev_pad_config *cfg,
-			struct v4l2_subdev_format *fmt)
-{
-	struct sensor_info *info = to_state(sd);
-	int ret;
-
-	if (info->tvin.flag)
-		info->sensor_field = V4L2_FIELD_INTERLACED;
-
-	sensor_print("fmt->format.width = %d\n", fmt->format.width);
-
-	if (fmt->format.width == 1440 || fmt->format.width == 720)  // NTSC/PAL
-		info->sensor_field = V4L2_FIELD_INTERLACED;
-	else
-		info->sensor_field = V4L2_FIELD_NONE;
-
-	if (!info->tvin.flag)
-		return sensor_set_fmt(sd, cfg, fmt);
-
-	sensor_print("[%s]sd->entity.stream_count == %d\n", __func__, sd->entity.stream_count);
-
-	if (sd->entity.stream_count == 0) {
-		nvp6158c_set_input_size(info, fmt, fmt->reserved[0]);
-		ret = sensor_set_fmt(sd, cfg, fmt);
-		sensor_print("%s befor ch%d %d*%d \n", __func__,
-			fmt->reserved[0], fmt->format.width, fmt->format.height);
-	} else {
-		ret = sensor_set_fmt(sd, cfg, fmt);
-		nvp6158c_set_input_size(info, fmt, fmt->reserved[0]);
-		sensor_print("%s after ch%d %d*%d \n", __func__,
-			fmt->reserved[0], fmt->format.width, fmt->format.height);
-	}
-
 	return ret;
 }
 
@@ -390,47 +223,6 @@ static struct sensor_win_size sensor_win_sizes[] = {
 	.regs_size = ARRAY_SIZE(sensor_regs),
 	.set_size = NULL,
 	},
-	{
-	.width = 1440,
-	.height = 576,
-	.hoffset = 0,
-	.voffset = 0,
-	.fps_fixed = 25,
-	.regs = sensor_regs,
-	.regs_size = ARRAY_SIZE(sensor_regs),
-	.set_size = NULL,
-	},
-	{
-	.width = 1440,
-	.height = 480,
-	.hoffset = 0,
-	.voffset = 0,
-	.fps_fixed = 25,
-	.regs = sensor_regs,
-	.regs_size = ARRAY_SIZE(sensor_regs),
-	.set_size = NULL,
-	},
-	{
-	.width = 720,
-	.height = 480,
-	.hoffset = 0,
-	.voffset = 0,
-	.fps_fixed = 25,
-	.regs = sensor_regs,
-	.regs_size = ARRAY_SIZE(sensor_regs),
-	.set_size = NULL,
-	},
-	{
-	.width = 720,
-	.height = 576,
-	.hoffset = 0,
-	.voffset = 0,
-	.fps_fixed = 25,
-	.regs = sensor_regs,
-	.regs_size = ARRAY_SIZE(sensor_regs),
-	.set_size = NULL,
-	},
-
 };
 
 #define N_WIN_SIZES (ARRAY_SIZE(sensor_win_sizes))
@@ -471,16 +263,8 @@ static int sensor_reg_init(struct sensor_info *info)
 
 	if (info->width == 1920 && info->height == 1080)
 		nvp6158_init_hardware(AHD20_1080P_25P);
-	else if (info->width == 1280 && info->height == 720)
+	else
 		nvp6158_init_hardware(AHD20_720P_25P);
-	else if (info->width == 1440 && info->height == 576)
-		nvp6158_init_hardware(AHD20_SD_H1440_PAL);
-	else if (info->width == 1440 && info->height == 480)
-		nvp6158_init_hardware(AHD20_SD_H1440_NT);
-	else if (info->width == 720 && info->height == 576)
-		nvp6158_init_hardware(AHD20_SD_SH720_PAL);
-	else if (info->width == 720 && info->height == 480)
-		nvp6158_init_hardware(AHD20_SD_SH720_NT);
 
 	return 0;
 }
@@ -493,11 +277,8 @@ static int sensor_s_stream(struct v4l2_subdev *sd, int enable)
 		     info->current_wins->width, info->current_wins->height,
 		     info->fmt->mbus_code);
 
-	if (!enable) {
-		info->tvin.flag = false;
+	if (!enable)
 		return 0;
-	}
-
 	return sensor_reg_init(info);
 }
 
@@ -521,7 +302,7 @@ static const struct v4l2_subdev_pad_ops sensor_pad_ops = {
 	.enum_mbus_code = sensor_enum_mbus_code,
 	.enum_frame_size = sensor_enum_frame_size,
 	.get_fmt = sensor_get_fmt,
-	.set_fmt = nvp6158c_sensor_set_fmt,
+	.set_fmt = sensor_set_fmt,
 };
 
 static const struct v4l2_subdev_ops sensor_ops = {
@@ -555,6 +336,7 @@ static int sensor_probe(struct i2c_client *client,
 	info->win_pt = &sensor_win_sizes[0];
 	info->fmt_num = N_FMTS;
 	info->win_size_num = N_WIN_SIZES;
+	info->sensor_field = V4L2_FIELD_NONE;
 
 	return 0;
 }

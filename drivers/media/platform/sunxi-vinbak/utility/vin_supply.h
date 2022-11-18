@@ -21,7 +21,6 @@ enum pmic_channel {
 	AFVDD,
 	FLVDD,
 	CAMERAVDD,
-	RESERVEVDD,
 	MAX_POW_NUM,
 };
 

@@ -42,11 +42,11 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			disp_init_enable         = <1>;
 			disp_mode                = <0>;
 
-			screen0_output_type      = <3>;
-			screen0_output_mode      = <4>;//0x23 for 4K
+			screen0_output_type      = <1>;//HDMI
+			screen0_output_mode      = <4>;//0x23 for 4K  //720p50
 
-			screen1_output_type      = <1>;
-			screen1_output_mode      = <4>;
+			screen1_output_type      = <3>;//LCD
+			screen1_output_mode      = <5>;
 
 			screen0_output_format    = <0>;
 			screen0_output_bits      = <0>;
@@ -66,26 +66,26 @@ chn_cfg_mode     : Hardware DE channel allocation config. 0:single display with 
 			screen1_output_scan      = <0>;
 			screen1_output_aspect_ratio = <8>;
 
-			dev0_output_type         = <3>;
-			dev0_output_mode         = <4>;//0x23 for 4K
+			dev0_output_type         = <4>;
+			dev0_output_mode         = <5>;//0x23 for 4K
 			dev0_screen_id           = <0>;
-			dev0_do_hpd              = <0>;
+			dev0_do_hpd              = <1>;
 
 			dev1_output_type         = <1>;
 			dev1_output_mode         = <4>;
 			dev1_screen_id           = <1>;
-			dev1_do_hpd              = <1>;
+			dev1_do_hpd              = <0>;
 
 			def_output_dev           = <0>;
 			hdmi_mode_check          = <1>;
 
 			fb0_format               = <0>;
-			fb0_width                = <1280>;//3840 for 4K
-			fb0_height               = <720>;//2160 for 4k
+			fb0_width                = <1024>;//3840 for 4K
+			fb0_height               = <600>;//2160 for 4k
 
-			fb1_format               = <5>;
-			fb1_width                = <1024>;
-			fb1_height               = <600>;
+			fb1_format               = <0>;
+			fb1_width                = <1280>;
+			fb1_height               = <720>;
 
 			chn_cfg_mode             = <1>;
 
@@ -248,8 +248,8 @@ pull up or pull down(default 0), driver level(default 1), data>
                                 ctp_screen_max_x = <0x400>;
                                 ctp_screen_max_y = <0x258>;
                                 ctp_revert_x_flag = <0x0>;
-                                ctp_revert_y_flag = <0x0>;
-                                ctp_exchange_x_y_flag = <0x0>;
+                                ctp_revert_y_flag = <0x1>;
+                                ctp_exchange_x_y_flag = <0x1>;
                                 ctp_int_port = <&pio PD 24 6 0xffffffff 0xffffffff 0>;
                                 ctp_wakeup = <&pio PD 27 1 0xffffffff 0xffffffff 1>;
                                 ctp-supply = <&reg_vdd_3v3>;

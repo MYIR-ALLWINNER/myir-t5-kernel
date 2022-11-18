@@ -282,7 +282,6 @@ void csic_prs_ncsi_en(unsigned int sel, unsigned int en);
 void csic_prs_mcsi_en(unsigned int sel, unsigned int en);
 void csic_prs_ch_en(unsigned int sel, unsigned int en);
 void csic_prs_ncsi_if_cfg(unsigned int sel, struct prs_ncsi_if_cfg *if_cfg);
-void csic_prs_ncsi_set_field(unsigned int sel, unsigned int ch_total_num, unsigned int mf_field);
 void csic_prs_mcsi_if_cfg(unsigned int sel, struct prs_mcsi_if_cfg *if_cfg);
 void csic_prs_capture_start(unsigned int sel, unsigned int ch_total_num,
 				struct prs_cap_mode *mode);
