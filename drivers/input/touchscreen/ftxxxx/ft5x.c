@@ -1024,6 +1024,7 @@ int fts_ctpm_fw_upgrade_with_i_file(void)
 	 * when the firmware in touch panel maybe corrupted,
 	 * or the firmware in host flash is new, need upgrade
 	 */
+#if 0 /*del by lcy*/
 	if ( 0xa6 == a || a != b ){
 		/*call the upgrade function*/
 		if(chip_id == 0x55 || chip_id == 0x08 || chip_id == 0x00 || chip_id == 0x0a){
@@ -1039,6 +1040,7 @@ int fts_ctpm_fw_upgrade_with_i_file(void)
 			}
 		}
 	}
+#endif
 	return i_ret;
 
 }
